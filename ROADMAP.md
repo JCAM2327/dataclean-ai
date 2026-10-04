@@ -1,22 +1,27 @@
 # Roadmap — DataClean AI
 
-## Fase 0 — núcleo (esta entrega)
+## Fase 0 — Núcleo de perfil y calidad
+
 - [x] Perfil de columnas
 - [x] Issues de calidad con severidad y recomendación
 - [x] CLI `python -m dataclean.cli archivo.csv`
-- [x] Test mínimo
+- [x] Prueba unitaria mínima
+- [x] CHANGELOG y registro diario profesional
 
-## Fase 1 — limpieza aplicada
-- [ ] Plan explícito (qué columna, qué acción, por qué)
-- [ ] Aplicar plan y exportar CSV + diff de calidad
-- [ ] Reglas: drop duplicados, imputar mediana/moda, marcar nulos, excluir id/constante
+## Fase 1 — Limpieza aplicada
 
-## Fase 2 — modelado condicional
-- [ ] Detectar target numérico vs categórico
-- [ ] Comparar baselines (mayoría / media) contra 2 modelos simples
-- [ ] Informe de métrica y advertencia si n es chico o el target está desbalanceado
+- [ ] Plan explícito (columna, acción, justificación)
+- [ ] Aplicar plan y exportar CSV + informe de diferencias de calidad
+- [ ] Reglas: eliminar duplicados, imputar mediana/moda, marcar nulos, excluir identificadores y constantes
 
-## Fase 3 — producto
-- [ ] API de carga
-- [ ] UI para ver issues y aceptar el plan
+## Fase 2 — Modelado condicional
+
+- [ ] Detectar variable objetivo numérica o categórica
+- [ ] Comparar baselines (mayoría / media) frente a dos modelos simples
+- [ ] Informe de métricas y advertencias (muestra pequeña o desbalance)
+
+## Fase 3 — Producto
+
+- [ ] API de carga de datasets
+- [ ] Interfaz para revisar issues y aceptar el plan de limpieza
 - [ ] Persistencia de informes
