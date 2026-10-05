@@ -65,6 +65,8 @@ def detect_issues(df: pd.DataFrame) -> list[dict[str, Any]]:
             })
 
         numeric = pd.to_numeric(series, errors="coerce")
+        if pd.api.types.is_bool_dtype(series):
+            continue
         valid = numeric.dropna()
         if len(valid) >= 8:
             q1, q3 = valid.quantile(0.25), valid.quantile(0.75)

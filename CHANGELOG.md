@@ -8,8 +8,17 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- Plan de limpieza ejecutable (drop de duplicados, imputación, exclusión de identificadores y constantes).
-- Exportación de CSV limpio e informe de diferencias de calidad.
+- Detección de variable objetivo y comparación de baselines frente a dos modelos simples.
+- Informe de métricas y advertencias por muestra pequeña o desbalance.
+
+## [0.2.0] — 2026-10-05
+
+### Añadido
+- Plan de limpieza explícito (`dataclean.plan.build_cleaning_plan`): cada paso declara columna, acción y justificación.
+- Reglas del plan: eliminar duplicados exactos, excluir constantes e identificadores, descartar columnas con 40% o más de nulos, imputar mediana o moda e incorporar indicador de faltante.
+- Aplicación del plan (`apply_plan`) y delta de calidad (`quality_delta`) entre el dataset original y el limpio.
+- CLI: el informe JSON incluye el plan; `--apply` y `--cleaned` exportan el CSV limpio y el informe de diferencias.
+- Pruebas de construcción y aplicación del plan.
 
 ## [0.1.0] — 2026-10-04
 

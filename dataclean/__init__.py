@@ -1,3 +1,3 @@
-"""DataClean AI — profiling, quality checks, and cleaning recommendations."""
+"""DataClean AI — profiling, quality checks, and executable cleaning plans."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

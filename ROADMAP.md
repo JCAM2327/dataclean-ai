@@ -10,9 +10,9 @@
 
 ## Fase 1 — Limpieza aplicada
 
-- [ ] Plan explícito (columna, acción, justificación)
-- [ ] Aplicar plan y exportar CSV + informe de diferencias de calidad
-- [ ] Reglas: eliminar duplicados, imputar mediana/moda, marcar nulos, excluir identificadores y constantes
+- [x] Plan explícito (columna, acción, justificación)
+- [x] Aplicar plan y exportar CSV + informe de diferencias de calidad
+- [x] Reglas: eliminar duplicados, imputar mediana/moda, marcar nulos, excluir identificadores y constantes
 
 ## Fase 2 — Modelado condicional
 
