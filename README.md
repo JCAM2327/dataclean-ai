@@ -2,8 +2,8 @@
 
 Plataforma para automatizar la limpieza, validación y análisis de datos tabulares. Detecta problemas de calidad, recomienda mejoras y, cuando el dataset lo permite, prepara la comparación de modelos de machine learning.
 
-**Estado actual:** fase 1 — plan de limpieza ejecutable.  
-**Última actualización documentada:** 2026-10-05.
+**Estado actual:** fase 2 — detección de variable objetivo.  
+**Última actualización documentada:** 2026-10-06.
 
 ## Flujo del producto
 
@@ -13,6 +13,7 @@ CSV
   → issues (nulos altos, constantes, identificadores, outliers IQR, duplicados)
   → plan explícito (columna, acción, justificación)
   → CSV limpio + delta de calidad
+  → objetivo numérico (regresión) o categórico (clasificación)
   → comparación de modelos si existe variable objetivo   ← siguiente
 ```
 
@@ -21,7 +22,7 @@ CSV
 ```bash
 pip install -r requirements.txt
 python -m dataclean.cli examples/sample.csv
-python -m dataclean.cli examples/sample.csv --apply --cleaned /tmp/limpio.csv --out /tmp/informe.json
+python -m dataclean.cli examples/sample.csv --target objetivo --apply --cleaned /tmp/limpio.csv --out /tmp/informe.json
 pytest
 ```
 
@@ -36,7 +37,7 @@ pytest
 ## Estructura del repositorio
 
 ```text
-dataclean/          # Núcleo de perfil, calidad y plan
+dataclean/          # Núcleo de perfil, calidad, plan y objetivo
 examples/           # Datos de ejemplo
 tests/              # Pruebas unitarias
 docs/diario/        # Bitácora diaria de desarrollo

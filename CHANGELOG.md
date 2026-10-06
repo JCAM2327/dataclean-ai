@@ -8,8 +8,17 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- Detección de variable objetivo y comparación de baselines frente a dos modelos simples.
-- Informe de métricas y advertencias por muestra pequeña o desbalance.
+- Comparación de baselines (mayoría / media) frente a dos modelos simples.
+- Informe de métricas de modelado y advertencias asociadas al ajuste.
+
+## [0.3.0] — 2026-10-06
+
+### Añadido
+- Detección de variable objetivo (`dataclean.target.detect_target`): distingue objetivo numérico (regresión) y categórico (clasificación).
+- Inferencia por alias de nombre (`objetivo`, `target`, `label`, `y`, `clase`, entre otros) y por cardinalidad; `--target` fija la columna y tiene prioridad.
+- Exclusión de identificadores y constantes en la inferencia. El informe declara confianza, candidatos, clases y advertencias de muestra pequeña, desbalance o nulos elevados.
+- CLI: el informe JSON incluye `target`; el resumen marca `ready_for_modeling` solo si hay objetivo utilizable.
+- Pruebas de inferencia, objetivo explícito, columna inexistente y advertencias.
 
 ## [0.2.0] — 2026-10-05
 
