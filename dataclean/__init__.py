@@ -1,3 +1,3 @@
-"""DataClean AI — profiling, quality checks, cleaning plans, and target detection."""
+"""DataClean AI — profiling, quality checks, cleaning plans, target detection, and model comparison."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

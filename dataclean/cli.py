@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from dataclean.models import compare_models
 from dataclean.plan import apply_plan, build_cleaning_plan, quality_delta
 from dataclean.profile import profile_dataframe
 from dataclean.quality import detect_issues
@@ -58,11 +59,16 @@ def analyze(path: str, apply: bool = False, target: str | None = None) -> tuple[
             ),
             "target": detect_target(cleaned, target=target or target_report.get("column")),
         }
+    modeling_frame = cleaned if cleaned is not None else df
+    modeling_target = report.get("applied", {}).get("target", target_report)
+    report["modeling"] = compare_models(modeling_frame, modeling_target)
+    report["summary"]["model_status"] = report["modeling"]["status"]
+    report["summary"]["model_winner"] = report["modeling"]["winner"]
     return report, cleaned
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="DataClean AI — perfil, calidad, plan y objetivo")
+    parser = argparse.ArgumentParser(description="DataClean AI — perfil, calidad, plan, objetivo y modelos")
     parser.add_argument("csv", help="Ruta al CSV")
     parser.add_argument("--out", help="Guardar el informe JSON")
     parser.add_argument("--apply", action="store_true", help="Aplicar el plan y añadir el delta de calidad")
