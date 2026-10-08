@@ -17,8 +17,8 @@
 ## Fase 2 — Modelado condicional
 
 - [x] Detectar variable objetivo numérica o categórica
-- [ ] Comparar baselines (mayoría / media) frente a dos modelos simples
-- [ ] Informe de métricas y advertencias (muestra pequeña o desbalance)
+- [x] Comparar baselines (mayoría / media) frente a dos modelos simples
+- [x] Informe de métricas y advertencias (muestra pequeña o desbalance)
 
 ## Fase 3 — Producto
 

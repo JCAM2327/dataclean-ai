@@ -8,8 +8,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- Comparación de baselines (mayoría / media) frente a dos modelos simples.
-- Informe de métricas de modelado y advertencias asociadas al ajuste.
+- API de carga de datasets.
+- Interfaz para revisar issues y aceptar el plan de limpieza.
+- Persistencia de informes.
+
+## [0.4.0] — 2026-10-08
+
+### Añadido
+- Comparación de baselines y dos modelos simples (`dataclean.models.compare_models`) sobre una partición de retención.
+- Clasificación: baseline de clase mayoritaria, regresión logística y árbol de profundidad 3. Métricas: accuracy, F1 macro y F1 ponderado. Métrica primaria: F1 macro.
+- Regresión: baseline de media de entrenamiento, regresión lineal y árbol de profundidad 3. Métricas: MAE, RMSE y R². Métrica primaria: RMSE.
+- Informe de modelado con ganador, diferencia frente al baseline, features excluidas y advertencias (muestra menor a 30 filas, desbalance, partición no estratificada, conjunto de prueba pequeño).
+- Omisiones explícitas si no hay objetivo, no hay filas suficientes, queda una sola clase o no quedan features.
+- CLI: el informe JSON incluye `modeling`; el resumen expone `model_status` y `model_winner`. Si se aplica el plan, la comparación usa el dataset limpio.
+- Dependencia `scikit-learn` y pruebas en `tests/test_models.py`.
 
 ## [0.3.0] — 2026-10-06
 

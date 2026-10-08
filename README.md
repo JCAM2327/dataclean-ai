@@ -2,8 +2,8 @@
 
 Plataforma para automatizar la limpieza, validación y análisis de datos tabulares. Detecta problemas de calidad, recomienda mejoras y, cuando el dataset lo permite, prepara la comparación de modelos de machine learning.
 
-**Estado actual:** fase 2 — detección de variable objetivo.  
-**Última actualización documentada:** 2026-10-06.
+**Estado actual:** fase 2 cerrada — comparación de baselines y modelos simples.  
+**Última actualización documentada:** 2026-10-08.
 
 ## Flujo del producto
 
@@ -14,7 +14,8 @@ CSV
   → plan explícito (columna, acción, justificación)
   → CSV limpio + delta de calidad
   → objetivo numérico (regresión) o categórico (clasificación)
-  → comparación de modelos si existe variable objetivo   ← siguiente
+  → comparación de modelos si existe variable objetivo
+  → API e interfaz de revisión del plan   ← siguiente
 ```
 
 ## Uso rápido
@@ -37,7 +38,7 @@ pytest
 ## Estructura del repositorio
 
 ```text
-dataclean/          # Núcleo de perfil, calidad, plan y objetivo
+dataclean/          # Núcleo de perfil, calidad, plan, objetivo y modelos
 examples/           # Datos de ejemplo
 tests/              # Pruebas unitarias
 docs/diario/        # Bitácora diaria de desarrollo
