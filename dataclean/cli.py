@@ -15,13 +15,22 @@ from dataclean.target import detect_target
 
 def analyze(path: str, apply: bool = False, target: str | None = None) -> tuple[dict, pd.DataFrame | None]:
     df = pd.read_csv(path)
+    return analyze_frame(df, source=path, apply=apply, target=target)
+
+
+def analyze_frame(
+    df: pd.DataFrame,
+    source: str,
+    apply: bool = False,
+    target: str | None = None,
+) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
     plan = build_cleaning_plan(df)
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
     report = {
-        "source": path,
+        "source": source,
         "profile": profile,
         "issues": issues,
         "plan": plan,
