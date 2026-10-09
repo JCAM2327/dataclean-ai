@@ -22,6 +22,6 @@
 
 ## Fase 3 — Producto
 
-- [ ] API de carga de datasets
+- [x] API de carga de datasets
 - [ ] Interfaz para revisar issues y aceptar el plan de limpieza
 - [ ] Persistencia de informes

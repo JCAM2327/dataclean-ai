@@ -8,9 +8,19 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- API de carga de datasets.
 - Interfaz para revisar issues y aceptar el plan de limpieza.
 - Persistencia de informes.
+
+## [0.5.0] — 2026-10-09
+
+### Añadido
+- API de carga de datasets (`dataclean.api`): `POST /datasets` recibe un CSV y devuelve identificador, resumen y enlace al informe.
+- El informe reutiliza perfil, issues, plan, objetivo y comparación de modelos. `apply` ejecuta el plan y expone el CSV limpio en `GET /datasets/{id}/cleaned`.
+- Consulta de datasets cargados (`GET /datasets`, `GET /datasets/{id}`) y estado (`GET /health`).
+- Validación de entrada: solo CSV, archivo no vacío, límite de 2 MB, UTF-8 y filas con el mismo número de campos.
+- Registro en memoria. La persistencia de informes permanece pendiente.
+- `analyze_frame` permite analizar un `DataFrame` sin escribir un archivo temporal.
+- Pruebas de contrato en `tests/test_api.py`.
 
 ## [0.4.0] — 2026-10-08
 
