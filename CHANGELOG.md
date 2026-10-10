@@ -8,8 +8,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- Interfaz para revisar issues y aceptar el plan de limpieza.
 - Persistencia de informes.
+
+## [0.6.0] — 2026-10-10
+
+### Añadido
+- Endpoints de revisión y aceptación del plan de limpieza: `GET /datasets/{id}/review` expone issues y plan; `POST /datasets/{id}/accept` aplica el plan de forma explícita.
+- El almacén en memoria retiene el DataFrame original para permitir la aceptación posterior a la carga.
+- Respuesta de carga incluye `review_url`. Aceptación devuelve 409 si el plan ya fue aplicado.
+- Pruebas de contrato para revisión, aceptación, conflicto y recursos inexistentes en `tests/test_api.py`.
+
+### Cambiado
+- Versión del paquete a 0.6.0.
 
 ## [0.5.0] — 2026-10-09
 

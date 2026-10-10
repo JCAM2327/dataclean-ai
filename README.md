@@ -2,8 +2,8 @@
 
 Plataforma para automatizar la limpieza, validación y análisis de datos tabulares. Detecta problemas de calidad, recomienda mejoras y, cuando el dataset lo permite, prepara la comparación de modelos de machine learning.
 
-**Estado actual:** fase 3 en curso — API de carga de datasets.  
-**Última actualización documentada:** 2026-10-09.
+**Estado actual:** fase 3 en curso — interfaz de revisión y aceptación del plan.  
+**Última actualización documentada:** 2026-10-10.
 
 ## Flujo del producto
 
@@ -16,7 +16,8 @@ CSV
   → objetivo numérico (regresión) o categórico (clasificación)
   → comparación de modelos si existe variable objetivo
   → API de carga de datasets
-  → interfaz de revisión del plan y persistencia de informes   ← siguiente
+  → interfaz de revisión del plan y aceptación explícita
+  → persistencia de informes   ← siguiente
 ```
 
 ## Uso rápido
@@ -29,7 +30,7 @@ pytest
 python -m uvicorn dataclean.api:app --host 127.0.0.1 --port 8000
 ```
 
-La API acepta `POST /datasets` con un CSV (`file`), objetivo opcional (`target`) y aplicación opcional del plan (`apply`). `GET /datasets/{id}` devuelve el informe. El registro es en memoria; la persistencia queda pendiente.
+La API acepta `POST /datasets` con un CSV (`file`), objetivo opcional (`target`) y aplicación opcional del plan (`apply`). `GET /datasets/{id}` devuelve el informe. `GET /datasets/{id}/review` expone issues y plan para revisión. `POST /datasets/{id}/accept` acepta y aplica el plan. El registro es en memoria; la persistencia queda pendiente.
 
 
 ## Documentación de avance

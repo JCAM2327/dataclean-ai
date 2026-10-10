@@ -21,7 +21,8 @@ class DatasetStore:
     """In-memory registry of uploaded datasets.
 
     Persistence of reports is a later phase item. This store keeps the upload
-    contract testable without writing to disk.
+    contract testable without writing to disk. The original frame is retained
+    so the cleaning plan can be reviewed and accepted after upload.
     """
 
     def __init__(self) -> None:
@@ -57,7 +58,7 @@ store = DatasetStore()
 app = FastAPI(
     title="DataClean AI",
     version=__version__,
-    description="Carga de datasets tabulares y generación del informe de perfil, plan y modelado.",
+    description="Carga de datasets tabulares, revisión del plan de limpieza y generación del informe.",
 )
 
 
@@ -86,6 +87,49 @@ def get_dataset(dataset_id: str) -> dict[str, Any]:
         "applied": record["applied"],
         "summary": record["summary"],
         "report": record["report"],
+    }
+
+
+@app.get("/datasets/{dataset_id}/review")
+def review_dataset(dataset_id: str) -> dict[str, Any]:
+    record = store.get(dataset_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Dataset no encontrado.")
+    return {
+        "dataset_id": record["dataset_id"],
+        "filename": record["filename"],
+        "applied": record["applied"],
+        "issues": record["report"]["issues"],
+        "plan": record["report"]["plan"],
+        "summary": record["summary"],
+    }
+
+
+@app.post("/datasets/{dataset_id}/accept", status_code=200)
+def accept_plan(dataset_id: str) -> dict[str, Any]:
+    record = store.get(dataset_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Dataset no encontrado.")
+    if record["applied"]:
+        raise HTTPException(status_code=409, detail="El plan ya fue aceptado y aplicado.")
+    frame = record["frame"]
+    report, cleaned = analyze_frame(
+        frame,
+        source=record["filename"],
+        apply=True,
+        target=record["declared_target"],
+    )
+    cleaned_csv = None if cleaned is None else cleaned.to_csv(index=False)
+    record["applied"] = True
+    record["summary"] = report["summary"]
+    record["report"] = report
+    record["cleaned_csv"] = cleaned_csv
+    return {
+        "dataset_id": record["dataset_id"],
+        "applied": True,
+        "summary": record["summary"],
+        "report_url": f"/datasets/{dataset_id}",
+        "cleaned_url": f"/datasets/{dataset_id}/cleaned",
     }
 
 
@@ -143,6 +187,8 @@ async def upload_dataset(
         "summary": report["summary"],
         "report": report,
         "cleaned_csv": cleaned_csv,
+        "frame": frame,
+        "declared_target": declared_target,
     })
     return {
         "dataset_id": record["dataset_id"],
@@ -153,6 +199,7 @@ async def upload_dataset(
         "applied": record["applied"],
         "summary": record["summary"],
         "report_url": f"/datasets/{dataset_id}",
+        "review_url": f"/datasets/{dataset_id}/review",
     }
 
 
