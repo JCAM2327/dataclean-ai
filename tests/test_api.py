@@ -127,3 +127,41 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_persistence_survives_store_reload():
+    """El informe y los datos originales permanecen tras reiniciar el almacén."""
+    from pathlib import Path
+    import tempfile
+    from dataclean.api import DatasetStore
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "store"
+        store_a = DatasetStore(root)
+        # Simular carga mediante el almacén (sin pasar por la app global)
+        from dataclean.cli import analyze_frame
+        frame = pd.read_csv(pd.io.common.StringIO(CSV))
+        report, _ = analyze_frame(frame, source="muestra.csv", apply=False, target="objetivo")
+        dataset_id = "persist-test-id"
+        record = {
+            "dataset_id": dataset_id,
+            "filename": "muestra.csv",
+            "created_at": "2026-10-11T15:00:00+00:00",
+            "rows": int(frame.shape[0]),
+            "columns": int(frame.shape[1]),
+            "applied": False,
+            "summary": report["summary"],
+            "report": report,
+            "cleaned_csv": None,
+            "frame": frame,
+            "declared_target": "objetivo",
+        }
+        store_a.add(record)
+
+        store_b = DatasetStore(root)
+        loaded = store_b.get(dataset_id)
+        assert loaded is not None
+        assert loaded["rows"] == 8
+        assert loaded["report"]["target"]["column"] == "objetivo"
+        assert loaded["frame"].shape == (8, 4)
+        assert store_b.list()[0]["dataset_id"] == dataset_id
