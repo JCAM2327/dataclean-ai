@@ -24,4 +24,4 @@
 
 - [x] API de carga de datasets
 - [x] Interfaz para revisar issues y aceptar el plan de limpieza
-- [ ] Persistencia de informes
+- [x] Persistencia de informes
