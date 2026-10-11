@@ -8,7 +8,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Planeado
-- Persistencia de informes.
+- Autenticación o aislamiento de informes por usuario.
+- Exportación formal del informe (HTML o PDF).
+
+## [0.7.0] — 2026-10-11
+
+### Añadido
+- Persistencia de informes: `DatasetStore` almacena cada dataset en `data/datasets/{id}/` (`meta.json`, `original.csv`, `cleaned.csv` opcional).
+- El informe completo y el frame original sobreviven al reinicio del proceso.
+- Método `update` para persistir cambios tras la aceptación del plan.
+- Prueba de round-trip `test_persistence_survives_store_reload`.
+
+### Cambiado
+- Versión del paquete a 0.7.0.
+- Descripción de la API actualizada para incluir persistencia.
 
 ## [0.6.0] — 2026-10-10
 
