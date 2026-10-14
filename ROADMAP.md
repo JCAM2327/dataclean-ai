@@ -29,4 +29,4 @@
 ## Fase 4 — Entrega y acceso
 
 - [x] Exportación formal del informe (HTML)
-- [ ] Autenticación o aislamiento de informes por usuario
+- [x] Autenticación o aislamiento de informes por usuario

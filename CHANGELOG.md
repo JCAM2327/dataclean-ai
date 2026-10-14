@@ -7,8 +7,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Planeado
-- Autenticación o aislamiento de informes por usuario.
+## [0.9.0] — 2026-10-14
+
+### Añadido
+- Aislamiento de informes por usuario: la cabecera `X-User-Id` es obligatoria. Cada usuario solo accede a sus propios datasets.
+- `DatasetStore` persiste bajo `data/users/{user_id}/datasets/{id}/`.
+- Endpoints reales: `POST /datasets`, `GET /datasets/{id}`, `POST /datasets/{id}/accept`, `GET /datasets/{id}/report.html`.
+- Pruebas de contrato que verifican aislamiento (usuario ajeno recibe 404) y exigencia de cabecera.
+
+### Cambiado
+- Versión del paquete a 0.9.0.
+- Descripción del paquete y de la API actualizadas.
+- Corrección menor en el renderizado HTML cuando el número de clases es un entero.
 
 ## [0.8.0] — 2026-10-12
 
