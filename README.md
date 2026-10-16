@@ -10,7 +10,7 @@ python -m dataclean.cli examples/sample.csv
 
 ## API
 
-Servidor FastAPI con aislamiento de informes por usuario.
+Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAPI enriquecida (disponible en `/docs` y `/openapi.json`).
 
 - Cabecera obligatoria: `X-User-Id`
 - `POST /datasets` — carga CSV y genera informe
@@ -23,4 +23,4 @@ Servidor FastAPI con aislamiento de informes por usuario.
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.10.0
+Versión actual: 0.11.0
