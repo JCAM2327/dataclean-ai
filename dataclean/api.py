@@ -38,9 +38,14 @@ def get_user_id(x_user_id: str | None = Header(default=None, alias="X-User-Id"))
 
 
 class Summary(BaseModel):
-    rows: int = Field(..., description="Número de filas del dataset")
-    columns: int = Field(..., description="Número de columnas")
     issue_count: int = Field(..., description="Cantidad de issues de calidad detectados")
+    high_or_critical: int = Field(..., description="Issues de severidad alta o crítica")
+    plan_steps: int = Field(..., description="Número de pasos del plan de limpieza")
+    ready_for_modeling: bool = Field(..., description="Si el dataset está listo para modelado")
+    target_column: str | None = Field(None, description="Columna objetivo detectada")
+    target_task: str | None = Field(None, description="Tipo de tarea (classification/regression)")
+    model_status: str | None = Field(None, description="Estado de la comparación de modelos")
+    model_winner: str | None = Field(None, description="Modelo ganador según métricas")
 
 
 class UploadResponse(BaseModel):
