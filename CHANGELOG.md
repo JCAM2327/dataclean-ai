@@ -7,6 +7,17 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-10-16
+
+### Añadido
+- Documentación OpenAPI enriquecida: etiquetas (`Datasets`, `Informes`), resúmenes, descripciones detalladas y modelos de respuesta Pydantic (`UploadResponse`, `AcceptResponse`, `Summary`) en todos los endpoints.
+- Esquema OpenAPI personalizado con logo y descripción ampliada de la plataforma.
+- Prueba de contrato `test_openapi_enriched` que verifica versión, descripciones, tags y modelos en `/openapi.json`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.11.0.
+- Descripción del paquete actualizada para incluir la documentación OpenAPI.
+
 ## [0.10.0] — 2026-10-15
 
 ### Añadido
