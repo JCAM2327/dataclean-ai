@@ -1,4 +1,4 @@
-"""API FastAPI con aislamiento de informes por usuario."""
+"""API FastAPI con aislamiento de informes por usuario y documentación OpenAPI enriquecida."""
 
 from __future__ import annotations
 
@@ -6,7 +6,9 @@ from typing import Any
 
 import pandas as pd
 from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel, Field
 
 from dataclean.cli import analyze_frame
 from dataclean.plan import apply_plan
@@ -15,8 +17,16 @@ from dataclean.store import DatasetStore
 
 app = FastAPI(
     title="DataClean AI",
-    description="Perfil, calidad, plan de limpieza, modelado, exportación HTML y descarga del CSV limpio. Informes aislados por usuario.",
-    version="0.10.0",
+    description=(
+        "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
+        "generar y aplicar planes de limpieza, detectar variable objetivo y comparar modelos baseline. "
+        "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`."
+    ),
+    version="0.11.0",
+    openapi_tags=[
+        {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
+        {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
+    ],
 )
 store = DatasetStore()
 
@@ -27,11 +37,42 @@ def get_user_id(x_user_id: str | None = Header(default=None, alias="X-User-Id"))
     return x_user_id.strip()
 
 
-@app.post("/datasets", status_code=201)
+class Summary(BaseModel):
+    rows: int = Field(..., description="Número de filas del dataset")
+    columns: int = Field(..., description="Número de columnas")
+    issue_count: int = Field(..., description="Cantidad de issues de calidad detectados")
+
+
+class UploadResponse(BaseModel):
+    dataset_id: str = Field(..., description="Identificador único del dataset")
+    filename: str = Field(..., description="Nombre del archivo original")
+    summary: Summary
+    html_url: str = Field(..., description="Ruta relativa al informe HTML")
+
+
+class AcceptResponse(BaseModel):
+    dataset_id: str
+    applied: bool = Field(..., description="Indica si el plan quedó aplicado")
+    rows: int | None = Field(None, description="Número de filas del CSV limpio")
+    message: str | None = Field(None, description="Mensaje informativo opcional")
+
+
+@app.post(
+    "/datasets",
+    status_code=201,
+    tags=["Datasets"],
+    summary="Cargar dataset CSV",
+    description="Sube un archivo CSV, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario.",
+    response_model=UploadResponse,
+    responses={
+        400: {"description": "CSV inválido o archivo no CSV"},
+        401: {"description": "Cabecera X-User-Id ausente o vacía"},
+    },
+)
 async def upload_dataset(
-    file: UploadFile = File(...),
+    file: UploadFile = File(..., description="Archivo CSV a analizar"),
     user_id: str = Depends(get_user_id),
-) -> dict[str, Any]:
+) -> UploadResponse:
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Se espera un archivo CSV")
     content = await file.read()
@@ -41,15 +82,21 @@ async def upload_dataset(
         raise HTTPException(status_code=400, detail=f"CSV inválido: {exc}") from exc
     report, _ = analyze_frame(df, source=file.filename)
     record = store.create(user_id, file.filename, df, report)
-    return {
-        "dataset_id": record["dataset_id"],
-        "filename": record["filename"],
-        "summary": record["summary"],
-        "html_url": f"/datasets/{record['dataset_id']}/report.html",
-    }
+    return UploadResponse(
+        dataset_id=record["dataset_id"],
+        filename=record["filename"],
+        summary=Summary(**record["summary"]),
+        html_url=f"/datasets/{record['dataset_id']}/report.html",
+    )
 
 
-@app.get("/datasets/{dataset_id}")
+@app.get(
+    "/datasets/{dataset_id}",
+    tags=["Datasets"],
+    summary="Consultar dataset",
+    description="Recupera el registro completo del dataset (informe, plan, estado) perteneciente al usuario.",
+    responses={404: {"description": "Dataset no encontrado o no pertenece al usuario"}},
+)
 def get_dataset(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[str, Any]:
     record = store.get(user_id, dataset_id)
     if record is None:
@@ -57,13 +104,24 @@ def get_dataset(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[st
     return record
 
 
-@app.post("/datasets/{dataset_id}/accept")
-def accept_plan(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[str, Any]:
+@app.post(
+    "/datasets/{dataset_id}/accept",
+    tags=["Datasets"],
+    summary="Aceptar plan de limpieza",
+    description="Aplica el plan de limpieza generado, persiste el CSV limpio y marca el dataset como aplicado.",
+    response_model=AcceptResponse,
+    responses={404: {"description": "Dataset no encontrado"}},
+)
+def accept_plan(dataset_id: str, user_id: str = Depends(get_user_id)) -> AcceptResponse:
     record = store.get(user_id, dataset_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Dataset no encontrado")
     if record.get("applied"):
-        return {"dataset_id": dataset_id, "applied": True, "message": "El plan ya estaba aplicado"}
+        return AcceptResponse(
+            dataset_id=dataset_id,
+            applied=True,
+            message="El plan ya estaba aplicado",
+        )
     folder = store._user_dir(user_id) / dataset_id
     df = pd.read_csv(folder / "original.csv")
     plan = record["report"].get("plan") or []
@@ -71,10 +129,17 @@ def accept_plan(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[st
     record["applied"] = True
     record["report"]["applied"] = True
     store.update(user_id, dataset_id, record, cleaned)
-    return {"dataset_id": dataset_id, "applied": True, "rows": len(cleaned)}
+    return AcceptResponse(dataset_id=dataset_id, applied=True, rows=len(cleaned))
 
 
-@app.get("/datasets/{dataset_id}/report.html", response_class=HTMLResponse)
+@app.get(
+    "/datasets/{dataset_id}/report.html",
+    response_class=HTMLResponse,
+    tags=["Informes"],
+    summary="Informe HTML",
+    description="Devuelve un documento HTML autocontenido con el perfil, issues, plan, objetivo y comparación de modelos.",
+    responses={404: {"description": "Dataset no encontrado"}},
+)
 def report_html(dataset_id: str, user_id: str = Depends(get_user_id)) -> str:
     record = store.get(user_id, dataset_id)
     if record is None:
@@ -82,7 +147,16 @@ def report_html(dataset_id: str, user_id: str = Depends(get_user_id)) -> str:
     return render_report_html(record)
 
 
-@app.get("/datasets/{dataset_id}/cleaned.csv")
+@app.get(
+    "/datasets/{dataset_id}/cleaned.csv",
+    tags=["Informes"],
+    summary="Descargar CSV limpio",
+    description="Descarga el archivo CSV resultante tras aplicar el plan de limpieza. Requiere que el plan haya sido aceptado.",
+    responses={
+        400: {"description": "El plan aún no ha sido aplicado"},
+        404: {"description": "Dataset o archivo limpio no encontrado"},
+    },
+)
 def download_cleaned(dataset_id: str, user_id: str = Depends(get_user_id)) -> FileResponse:
     record = store.get(user_id, dataset_id)
     if record is None:
@@ -98,3 +172,21 @@ def download_cleaned(dataset_id: str, user_id: str = Depends(get_user_id)) -> Fi
         media_type="text/csv",
         filename=f"{dataset_id}_cleaned.csv",
     )
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+    )
+    openapi_schema["info"]["x-logo"] = {"url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png"}
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
