@@ -34,5 +34,5 @@
 ## Fase 5 — Mejoras de producto
 
 - [x] Descarga del CSV limpio tras aceptar el plan
-- [ ] Documentación OpenAPI enriquecida
+- [x] Documentación OpenAPI enriquecida
 - [ ] Autenticación por API key (opcional)
