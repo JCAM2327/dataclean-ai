@@ -105,3 +105,18 @@ def test_download_cleaned_csv():
     # Otro usuario no puede
     other = client.get(f"/datasets/{dataset_id}/cleaned.csv", headers={"X-User-Id": "user-f"})
     assert other.status_code == 404
+
+
+def test_openapi_enriched():
+    schema = client.get("/openapi.json").json()
+    assert schema["info"]["version"] == "0.11.0"
+    assert "X-User-Id" in schema["info"]["description"]
+    paths = schema["paths"]
+    assert "/datasets" in paths
+    post = paths["/datasets"]["post"]
+    assert post["summary"] == "Cargar dataset CSV"
+    assert "Datasets" in post["tags"]
+    assert "UploadResponse" in str(post.get("responses", {}))
+    cleaned = paths["/datasets/{dataset_id}/cleaned.csv"]["get"]
+    assert cleaned["summary"] == "Descargar CSV limpio"
+    assert "Informes" in cleaned["tags"]
