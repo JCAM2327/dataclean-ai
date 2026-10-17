@@ -1,7 +1,8 @@
-"""API FastAPI con aislamiento de informes por usuario y documentación OpenAPI enriquecida."""
+"""API FastAPI con aislamiento de informes por usuario, autenticación opcional por API key y documentación OpenAPI enriquecida."""
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import pandas as pd
@@ -20,9 +21,10 @@ app = FastAPI(
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo y comparar modelos baseline. "
-        "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`."
+        "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`. "
+        "Si se configura la variable de entorno `DATACLEAN_API_KEY`, se exige adicionalmente la cabecera `X-API-Key`."
     ),
-    version="0.11.0",
+    version="0.12.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -31,7 +33,13 @@ app = FastAPI(
 store = DatasetStore()
 
 
-def get_user_id(x_user_id: str | None = Header(default=None, alias="X-User-Id")) -> str:
+def get_user_id(
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+) -> str:
+    expected_key = os.environ.get("DATACLEAN_API_KEY")
+    if expected_key and (not x_api_key or x_api_key != expected_key):
+        raise HTTPException(status_code=401, detail="Cabecera X-API-Key requerida o inválida")
     if not x_user_id or not x_user_id.strip():
         raise HTTPException(status_code=401, detail="Cabecera X-User-Id requerida")
     return x_user_id.strip()
@@ -71,7 +79,7 @@ class AcceptResponse(BaseModel):
     response_model=UploadResponse,
     responses={
         400: {"description": "CSV inválido o archivo no CSV"},
-        401: {"description": "Cabecera X-User-Id ausente o vacía"},
+        401: {"description": "Cabecera X-User-Id ausente o vacía, o X-API-Key requerida/inválida"},
     },
 )
 async def upload_dataset(
