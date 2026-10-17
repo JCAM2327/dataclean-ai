@@ -35,4 +35,4 @@
 
 - [x] Descarga del CSV limpio tras aceptar el plan
 - [x] Documentación OpenAPI enriquecida
-- [ ] Autenticación por API key (opcional)
+- [x] Autenticación por API key (opcional)
