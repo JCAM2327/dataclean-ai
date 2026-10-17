@@ -109,7 +109,7 @@ def test_download_cleaned_csv():
 
 def test_openapi_enriched():
     schema = client.get("/openapi.json").json()
-    assert schema["info"]["version"] == "0.11.0"
+    assert schema["info"]["version"] == "0.12.0"
     assert "X-User-Id" in schema["info"]["description"]
     paths = schema["paths"]
     assert "/datasets" in paths
@@ -120,3 +120,41 @@ def test_openapi_enriched():
     cleaned = paths["/datasets/{dataset_id}/cleaned.csv"]["get"]
     assert cleaned["summary"] == "Descargar CSV limpio"
     assert "Informes" in cleaned["tags"]
+
+
+def test_optional_api_key_enforced_when_configured(monkeypatch):
+    monkeypatch.setenv("DATACLEAN_API_KEY", "secret-key-123")
+    # Sin key → 401
+    response = client.post(
+        "/datasets",
+        files={"file": ("sample.csv", _csv_bytes(), "text/csv")},
+        headers={"X-User-Id": "user-key"},
+    )
+    assert response.status_code == 401
+    assert "X-API-Key" in response.json()["detail"]
+
+    # Con key correcta → 201
+    response_ok = client.post(
+        "/datasets",
+        files={"file": ("sample.csv", _csv_bytes(), "text/csv")},
+        headers={"X-User-Id": "user-key", "X-API-Key": "secret-key-123"},
+    )
+    assert response_ok.status_code == 201
+    dataset_id = response_ok.json()["dataset_id"]
+
+    # Key incorrecta → 401
+    response_bad = client.get(
+        f"/datasets/{dataset_id}",
+        headers={"X-User-Id": "user-key", "X-API-Key": "wrong"},
+    )
+    assert response_bad.status_code == 401
+
+
+def test_api_key_ignored_when_not_configured(monkeypatch):
+    monkeypatch.delenv("DATACLEAN_API_KEY", raising=False)
+    response = client.post(
+        "/datasets",
+        files={"file": ("sample.csv", _csv_bytes(), "text/csv")},
+        headers={"X-User-Id": "user-no-key"},
+    )
+    assert response.status_code == 201
