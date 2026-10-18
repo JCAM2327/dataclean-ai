@@ -20,11 +20,11 @@ app = FastAPI(
     title="DataClean AI",
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
-        "generar y aplicar planes de limpieza, detectar variable objetivo y comparar modelos baseline. "
+        "generar y aplicar planes de limpieza (incluye clipping de outliers IQR), detectar variable objetivo y comparar modelos baseline. "
         "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`. "
         "Si se configura la variable de entorno `DATACLEAN_API_KEY`, se exige adicionalmente la cabecera `X-API-Key`."
     ),
-    version="0.12.0",
+    version="0.13.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
