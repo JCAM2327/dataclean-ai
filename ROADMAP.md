@@ -36,3 +36,9 @@
 - [x] Descarga del CSV limpio tras aceptar el plan
 - [x] Documentación OpenAPI enriquecida
 - [x] Autenticación por API key (opcional)
+
+## Fase 6 — Limpieza avanzada
+
+- [x] Clipping de outliers IQR en el plan de limpieza
+- [ ] Soporte de formatos adicionales (Parquet, Excel)
+- [ ] Estrategias de imputación configurables
