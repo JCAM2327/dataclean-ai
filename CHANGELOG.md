@@ -7,6 +7,17 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-10-18
+
+### Añadido
+- Acción de plan `clip_outliers`: para columnas numéricas con outliers por criterio IQR (1.5·IQR y fracción ≥ 1 %), se calculan límites a partir de los datos observados y se recortan los valores fuera de rango.
+- Parámetros del paso: `lower`, `upper` y `count`.
+- Prueba unitaria `test_clip_outliers_iqr` que verifica generación del paso y aplicación correcta de los límites.
+
+### Cambiado
+- Versión del paquete a 0.13.0.
+- Descripción del paquete actualizada para incluir el clipping de outliers.
+
 ## [0.12.0] — 2026-10-17
 
 ### Añadido
