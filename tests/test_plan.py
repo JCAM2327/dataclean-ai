@@ -61,3 +61,24 @@ def test_apply_plan_cleans_and_reports_delta():
     assert delta["rows_removed"] == 1
     assert delta["duplicate_rows_after"] == 0
     assert delta["issues_resolved"] > 0
+
+
+def test_clip_outliers_iqr():
+    df = pd.DataFrame({
+        "valor": [10, 12, 11, 13, 1000, 9, 14, 10, 11, 12],
+    })
+    plan = build_cleaning_plan(df)
+    clip_steps = [s for s in plan if s["action"] == "clip_outliers"]
+    assert len(clip_steps) == 1
+    step = clip_steps[0]
+    assert step["column"] == "valor"
+    assert "lower" in step["params"]
+    assert "upper" in step["params"]
+    assert step["params"]["count"] >= 1
+
+    cleaned = apply_plan(df, plan)
+    lower = step["params"]["lower"]
+    upper = step["params"]["upper"]
+    assert cleaned["valor"].max() <= upper
+    assert cleaned["valor"].min() >= lower
+    assert cleaned["valor"].max() < 1000
