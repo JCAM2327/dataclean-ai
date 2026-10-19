@@ -7,6 +7,19 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-10-19
+
+### Añadido
+- Soporte de carga de formatos adicionales: Excel (`.xlsx`, `.xls`) y Parquet, tanto en CLI como en la API.
+- Módulo `dataclean.io` con `load_dataframe` que detecta el formato por extensión (ruta o bytes).
+- Constante `SUPPORTED_EXTENSIONS` exportada para validación.
+- Pruebas unitarias `tests/test_io.py` y pruebas de contrato de API para Excel, Parquet y formato no soportado.
+
+### Cambiado
+- Versión del paquete y de la API a 0.14.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados para reflejar los formatos soportados.
+- Endpoint `POST /datasets` acepta CSV, Excel y Parquet; el resumen OpenAPI pasa a "Cargar dataset tabular".
+
 ## [0.13.0] — 2026-10-18
 
 ### Añadido

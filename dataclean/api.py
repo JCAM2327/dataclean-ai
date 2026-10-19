@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -12,6 +13,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from dataclean.cli import analyze_frame
+from dataclean.io import SUPPORTED_EXTENSIONS, load_dataframe
 from dataclean.plan import apply_plan
 from dataclean.report import render_report_html
 from dataclean.store import DatasetStore
@@ -21,10 +23,11 @@ app = FastAPI(
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza (incluye clipping de outliers IQR), detectar variable objetivo y comparar modelos baseline. "
+        "Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet. "
         "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`. "
         "Si se configura la variable de entorno `DATACLEAN_API_KEY`, se exige adicionalmente la cabecera `X-API-Key`."
     ),
-    version="0.13.0",
+    version="0.14.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -74,25 +77,31 @@ class AcceptResponse(BaseModel):
     "/datasets",
     status_code=201,
     tags=["Datasets"],
-    summary="Cargar dataset CSV",
-    description="Sube un archivo CSV, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario.",
+    summary="Cargar dataset tabular",
+    description="Sube un archivo CSV, Excel (.xlsx/.xls) o Parquet, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario.",
     response_model=UploadResponse,
     responses={
-        400: {"description": "CSV inválido o archivo no CSV"},
+        400: {"description": "Archivo inválido o formato no soportado"},
         401: {"description": "Cabecera X-User-Id ausente o vacía, o X-API-Key requerida/inválida"},
     },
 )
 async def upload_dataset(
-    file: UploadFile = File(..., description="Archivo CSV a analizar"),
+    file: UploadFile = File(..., description="Archivo tabular (CSV, Excel, Parquet) a analizar"),
     user_id: str = Depends(get_user_id),
 ) -> UploadResponse:
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Se espera un archivo CSV")
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Nombre de archivo requerido")
+    ext = Path(file.filename).suffix.lower()
+    if ext not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato no soportado: {ext}. Soportados: {', '.join(sorted(SUPPORTED_EXTENSIONS))}",
+        )
     content = await file.read()
     try:
-        df = pd.read_csv(pd.io.common.BytesIO(content))
+        df = load_dataframe(content, filename=file.filename)
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail=f"CSV inválido: {exc}") from exc
+        raise HTTPException(status_code=400, detail=f"Archivo inválido: {exc}") from exc
     report, _ = analyze_frame(df, source=file.filename)
     record = store.create(user_id, file.filename, df, report)
     return UploadResponse(

@@ -40,5 +40,5 @@
 ## Fase 6 — Limpieza avanzada
 
 - [x] Clipping de outliers IQR en el plan de limpieza
-- [ ] Soporte de formatos adicionales (Parquet, Excel)
+- [x] Soporte de formatos adicionales (Parquet, Excel)
 - [ ] Estrategias de imputación configurables

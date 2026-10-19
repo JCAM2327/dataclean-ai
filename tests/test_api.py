@@ -109,12 +109,12 @@ def test_download_cleaned_csv():
 
 def test_openapi_enriched():
     schema = client.get("/openapi.json").json()
-    assert schema["info"]["version"] == "0.12.0"
+    assert schema["info"]["version"] == "0.14.0"
     assert "X-User-Id" in schema["info"]["description"]
     paths = schema["paths"]
     assert "/datasets" in paths
     post = paths["/datasets"]["post"]
-    assert post["summary"] == "Cargar dataset CSV"
+    assert post["summary"] == "Cargar dataset tabular"
     assert "Datasets" in post["tags"]
     assert "UploadResponse" in str(post.get("responses", {}))
     cleaned = paths["/datasets/{dataset_id}/cleaned.csv"]["get"]
@@ -158,3 +158,66 @@ def test_api_key_ignored_when_not_configured(monkeypatch):
         headers={"X-User-Id": "user-no-key"},
     )
     assert response.status_code == 201
+
+
+def _excel_bytes() -> bytes:
+    df = pd.DataFrame(
+        {
+            "edad": [30, 40, None, 50],
+            "ciudad": ["A", "B", "A", "C"],
+            "objetivo": [0, 1, 0, 1],
+        }
+    )
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False, engine="openpyxl")
+    return buf.getvalue()
+
+
+def _parquet_bytes() -> bytes:
+    df = pd.DataFrame(
+        {
+            "edad": [30, 40, None, 50],
+            "ciudad": ["A", "B", "A", "C"],
+            "objetivo": [0, 1, 0, 1],
+        }
+    )
+    buf = io.BytesIO()
+    df.to_parquet(buf, index=False)
+    return buf.getvalue()
+
+
+def test_upload_excel():
+    headers = {"X-User-Id": "user-excel"}
+    response = client.post(
+        "/datasets",
+        files={"file": ("sample.xlsx", _excel_bytes(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+        headers=headers,
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["filename"] == "sample.xlsx"
+    assert "dataset_id" in body
+
+
+def test_upload_parquet():
+    headers = {"X-User-Id": "user-parquet"}
+    response = client.post(
+        "/datasets",
+        files={"file": ("sample.parquet", _parquet_bytes(), "application/octet-stream")},
+        headers=headers,
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["filename"] == "sample.parquet"
+    assert "dataset_id" in body
+
+
+def test_upload_unsupported_format():
+    headers = {"X-User-Id": "user-bad"}
+    response = client.post(
+        "/datasets",
+        files={"file": ("sample.txt", b"a,b\n1,2", "text/plain")},
+        headers=headers,
+    )
+    assert response.status_code == 400
+    assert "no soportado" in response.json()["detail"].lower()

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from dataclean.io import load_dataframe
 from dataclean.models import compare_models
 from dataclean.plan import apply_plan, build_cleaning_plan, quality_delta
 from dataclean.profile import profile_dataframe
@@ -14,7 +15,7 @@ from dataclean.target import detect_target
 
 
 def analyze(path: str, apply: bool = False, target: str | None = None) -> tuple[dict, pd.DataFrame | None]:
-    df = pd.read_csv(path)
+    df = load_dataframe(path)
     return analyze_frame(df, source=path, apply=apply, target=target)
 
 
@@ -78,13 +79,13 @@ def analyze_frame(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="DataClean AI — perfil, calidad, plan, objetivo y modelos")
-    parser.add_argument("csv", help="Ruta al CSV")
+    parser.add_argument("file", help="Ruta al archivo tabular (CSV, Excel, Parquet)")
     parser.add_argument("--out", help="Guardar el informe JSON")
     parser.add_argument("--apply", action="store_true", help="Aplicar el plan y añadir el delta de calidad")
     parser.add_argument("--cleaned", help="Ruta del CSV limpio (requiere --apply)")
     parser.add_argument("--target", help="Columna objetivo; si se omite, se infiere")
     args = parser.parse_args()
-    report, cleaned = analyze(args.csv, apply=args.apply or bool(args.cleaned), target=args.target)
+    report, cleaned = analyze(args.file, apply=args.apply or bool(args.cleaned), target=args.target)
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
