@@ -14,9 +14,16 @@ from dataclean.quality import detect_issues
 from dataclean.target import detect_target
 
 
-def analyze(path: str, apply: bool = False, target: str | None = None) -> tuple[dict, pd.DataFrame | None]:
+def analyze(
+    path: str,
+    apply: bool = False,
+    target: str | None = None,
+    imputation_strategies: dict | None = None,
+) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
-    return analyze_frame(df, source=path, apply=apply, target=target)
+    return analyze_frame(
+        df, source=path, apply=apply, target=target, imputation_strategies=imputation_strategies
+    )
 
 
 def analyze_frame(
@@ -24,10 +31,11 @@ def analyze_frame(
     source: str,
     apply: bool = False,
     target: str | None = None,
+    imputation_strategies: dict | None = None,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
-    plan = build_cleaning_plan(df)
+    plan = build_cleaning_plan(df, imputation_strategies=imputation_strategies)
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
     report = {
@@ -84,8 +92,43 @@ def main() -> None:
     parser.add_argument("--apply", action="store_true", help="Aplicar el plan y añadir el delta de calidad")
     parser.add_argument("--cleaned", help="Ruta del CSV limpio (requiere --apply)")
     parser.add_argument("--target", help="Columna objetivo; si se omite, se infiere")
+    parser.add_argument(
+        "--impute-numeric",
+        choices=["median", "mean", "mode", "constant"],
+        default=None,
+        help="Estrategia de imputación por defecto para columnas numéricas",
+    )
+    parser.add_argument(
+        "--impute-categorical",
+        choices=["mode", "median", "mean", "constant"],
+        default=None,
+        help="Estrategia de imputación por defecto para columnas categóricas",
+    )
+    parser.add_argument(
+        "--impute-constant-value",
+        default=None,
+        help="Valor constante a usar cuando la estrategia es constant (numérico o categórico)",
+    )
     args = parser.parse_args()
-    report, cleaned = analyze(args.file, apply=args.apply or bool(args.cleaned), target=args.target)
+    strategies = {}
+    if args.impute_numeric:
+        strategies["__numeric__"] = args.impute_numeric
+    if args.impute_categorical:
+        strategies["__categorical__"] = args.impute_categorical
+    if args.impute_constant_value is not None:
+        # applied when strategy is constant
+        strategies.setdefault("__numeric__", {})
+        if isinstance(strategies["__numeric__"], str) and strategies["__numeric__"] == "constant":
+            strategies["__numeric__"] = {"strategy": "constant", "value": args.impute_constant_value}
+        strategies.setdefault("__categorical__", {})
+        if isinstance(strategies["__categorical__"], str) and strategies["__categorical__"] == "constant":
+            strategies["__categorical__"] = {"strategy": "constant", "value": args.impute_constant_value}
+    report, cleaned = analyze(
+        args.file,
+        apply=args.apply or bool(args.cleaned),
+        target=args.target,
+        imputation_strategies=strategies or None,
+    )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
