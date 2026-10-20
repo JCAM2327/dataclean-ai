@@ -41,4 +41,4 @@
 
 - [x] Clipping de outliers IQR en el plan de limpieza
 - [x] Soporte de formatos adicionales (Parquet, Excel)
-- [ ] Estrategias de imputación configurables
+- [x] Estrategias de imputación configurables
