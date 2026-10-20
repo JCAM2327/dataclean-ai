@@ -7,6 +7,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-10-20
+
+### Añadido
+- Estrategias de imputación configurables: mediana (por defecto numérica), media, moda (por defecto categórica) y constante.
+- Parámetro `imputation_strategies` en `build_cleaning_plan` (claves por columna o `__numeric__` / `__categorical__`).
+- Acciones de plan `impute_mean` e `impute_constant`.
+- Opciones CLI `--impute-numeric`, `--impute-categorical` y `--impute-constant-value`.
+- Prueba unitaria `test_configurable_imputation_strategies`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.15.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados.
+- El indicador de nulos se genera antes de la imputación para preservar la señal de ausencia original.
+
 ## [0.14.0] — 2026-10-19
 
 ### Añadido
