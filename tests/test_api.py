@@ -109,7 +109,7 @@ def test_download_cleaned_csv():
 
 def test_openapi_enriched():
     schema = client.get("/openapi.json").json()
-    assert schema["info"]["version"] == "0.14.0"
+    assert schema["info"]["version"] == "0.15.0"
     assert "X-User-Id" in schema["info"]["description"]
     paths = schema["paths"]
     assert "/datasets" in paths
