@@ -82,3 +82,25 @@ def test_clip_outliers_iqr():
     assert cleaned["valor"].max() <= upper
     assert cleaned["valor"].min() >= lower
     assert cleaned["valor"].max() < 1000
+
+
+def test_configurable_imputation_strategies():
+    df = pd.DataFrame({
+        "edad": [10, None, 30, 40],
+        "ciudad": ["X", None, "X", "Y"],
+    })
+    strategies = {
+        "__numeric__": "mean",
+        "__categorical__": {"strategy": "constant", "value": "Unknown"},
+    }
+    plan = build_cleaning_plan(df, strategies)
+    actions = {(s["column"], s["action"]) for s in plan}
+    assert ("edad", "impute_mean") in actions
+    assert ("ciudad", "impute_constant") in actions
+
+    cleaned = apply_plan(df, plan)
+    assert cleaned["edad"].isna().sum() == 0
+    assert abs(cleaned["edad"].iloc[1] - 26.666667) < 0.01  # mean of 10,30,40
+    assert cleaned["ciudad"].iloc[1] == "Unknown"
+    assert cleaned["edad__missing"].iloc[1] == 1
+    assert cleaned["ciudad__missing"].iloc[1] == 1
