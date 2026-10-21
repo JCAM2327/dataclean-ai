@@ -19,10 +19,16 @@ def analyze(
     apply: bool = False,
     target: str | None = None,
     imputation_strategies: dict | None = None,
+    scale_numeric: bool = False,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
-        df, source=path, apply=apply, target=target, imputation_strategies=imputation_strategies
+        df,
+        source=path,
+        apply=apply,
+        target=target,
+        imputation_strategies=imputation_strategies,
+        scale_numeric=scale_numeric,
     )
 
 
@@ -32,10 +38,15 @@ def analyze_frame(
     apply: bool = False,
     target: str | None = None,
     imputation_strategies: dict | None = None,
+    scale_numeric: bool = False,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
-    plan = build_cleaning_plan(df, imputation_strategies=imputation_strategies)
+    plan = build_cleaning_plan(
+        df,
+        imputation_strategies=imputation_strategies,
+        scale_numeric=scale_numeric,
+    )
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
     report = {
@@ -109,6 +120,11 @@ def main() -> None:
         default=None,
         help="Valor constante a usar cuando la estrategia es constant (numérico o categórico)",
     )
+    parser.add_argument(
+        "--scale-numeric",
+        action="store_true",
+        help="Incluir estandarización z-score de columnas numéricas en el plan",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -128,6 +144,7 @@ def main() -> None:
         apply=args.apply or bool(args.cleaned),
         target=args.target,
         imputation_strategies=strategies or None,
+        scale_numeric=args.scale_numeric,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:

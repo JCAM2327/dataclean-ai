@@ -7,6 +7,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.16.0] — 2026-10-21
+
+### Añadido
+- Estandarización opcional (z-score) de columnas numéricas en el plan de limpieza.
+- Parámetro `scale_numeric` en `build_cleaning_plan` y `analyze_frame`.
+- Acción de plan `scale_standard` con parámetros `mean` y `std` calculados sobre los datos observados.
+- Flag CLI `--scale-numeric`.
+- Prueba unitaria `test_scale_numeric_standardization`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.16.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados.
+- ROADMAP: nueva Fase 7 — Preparación de características, con el ítem de estandarización marcado.
+
 ## [0.15.0] — 2026-10-20
 
 ### Añadido

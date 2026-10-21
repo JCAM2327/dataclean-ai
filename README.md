@@ -1,6 +1,6 @@
 # DataClean AI
 
-Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR y estrategias de imputación configurables), detectar variable objetivo y comparar modelos baseline.
+Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables y estandarización opcional de columnas numéricas), detectar variable objetivo y comparar modelos baseline.
 
 Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet.
 
@@ -28,4 +28,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.15.0
+Versión actual: 0.16.0

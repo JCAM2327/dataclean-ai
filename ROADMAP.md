@@ -42,3 +42,8 @@
 - [x] Clipping de outliers IQR en el plan de limpieza
 - [x] Soporte de formatos adicionales (Parquet, Excel)
 - [x] Estrategias de imputación configurables
+
+## Fase 7 — Preparación de características
+
+- [x] Estandarización opcional (z-score) de columnas numéricas en el plan de limpieza
+

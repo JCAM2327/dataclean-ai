@@ -12,6 +12,7 @@ OUTLIER_FRACTION = 0.01
 def build_cleaning_plan(
     df: pd.DataFrame,
     imputation_strategies: dict[str, Any] | None = None,
+    scale_numeric: bool = False,
 ) -> list[dict[str, Any]]:
     """Build an explicit cleaning plan: column, action and justification.
 
@@ -23,6 +24,7 @@ def build_cleaning_plan(
       (defaults: median for numeric, mode for categorical)
     - mark imputed nulls with a boolean indicator column
     - clip numeric columns that present IQR outliers (bounds from observed data)
+    - optionally standardize numeric columns (z-score) using mean and std of observed data
 
     imputation_strategies keys:
       - "__numeric__": "median" | "mean" | "mode" | "constant"
@@ -130,6 +132,24 @@ def build_cleaning_plan(
                     },
                 })
 
+            # Optional standardization (z-score) for numeric columns
+            if scale_numeric:
+                stats = _numeric_stats(series)
+                if stats is not None:
+                    mean, std = stats
+                    plan.append({
+                        "column": column,
+                        "action": "scale_standard",
+                        "justification": (
+                            f"Estandarización z-score (media {round(mean, 4)}, desvío {round(std, 4)}) "
+                            "para mejorar el ajuste de modelos sensibles a la escala."
+                        ),
+                        "params": {
+                            "mean": round(float(mean), 6),
+                            "std": round(float(std), 6),
+                        },
+                    })
+
     return plan
 
 
@@ -180,6 +200,14 @@ def apply_plan(df: pd.DataFrame, plan: list[dict[str, Any]]) -> pd.DataFrame:
                     clipped = numeric.clip(lower=lower, upper=upper)
                     # Preserve original non-numeric as NaN already handled by to_numeric
                     out[column] = clipped.where(numeric.notna(), out[column])
+        elif action == "scale_standard":
+            if column in out.columns:
+                mean = params.get("mean")
+                std = params.get("std")
+                if mean is not None and std is not None and float(std) != 0:
+                    numeric = pd.to_numeric(out[column], errors="coerce")
+                    scaled = (numeric - float(mean)) / float(std)
+                    out[column] = scaled.where(numeric.notna(), out[column])
         else:
             raise ValueError(f"Acción de plan no soportada: {action}")
     return out
@@ -270,6 +298,18 @@ def _mostly_numeric(series: pd.Series) -> bool:
         return pd.api.types.is_numeric_dtype(series)
     numeric = pd.to_numeric(observed, errors="coerce")
     return int(numeric.notna().sum()) >= max(1, int(0.8 * len(observed)))
+
+
+def _numeric_stats(series: pd.Series) -> tuple[float, float] | None:
+    """Return (mean, std) for standardization or None if not applicable."""
+    numeric = pd.to_numeric(series, errors="coerce").dropna()
+    if len(numeric) < 2:
+        return None
+    mean = float(numeric.mean())
+    std = float(numeric.std(ddof=0))
+    if std <= 0 or pd.isna(std):
+        return None
+    return mean, std
 
 
 def _iqr_bounds(series: pd.Series) -> tuple[float, float, int] | None:

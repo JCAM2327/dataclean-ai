@@ -104,3 +104,30 @@ def test_configurable_imputation_strategies():
     assert cleaned["ciudad"].iloc[1] == "Unknown"
     assert cleaned["edad__missing"].iloc[1] == 1
     assert cleaned["ciudad__missing"].iloc[1] == 1
+
+
+def test_scale_numeric_standardization():
+    df = pd.DataFrame({
+        "valor": [10.0, 20.0, 30.0, 40.0],
+        "categoria": ["a", "b", "a", "c"],
+    })
+    plan = build_cleaning_plan(df, scale_numeric=True)
+    scale_steps = [s for s in plan if s["action"] == "scale_standard"]
+    assert len(scale_steps) == 1
+    step = scale_steps[0]
+    assert step["column"] == "valor"
+    assert "mean" in step["params"]
+    assert "std" in step["params"]
+    mean = step["params"]["mean"]
+    std = step["params"]["std"]
+    assert abs(mean - 25.0) < 0.01
+    assert abs(std - 11.18034) < 0.1  # population std of [10,20,30,40]
+
+    cleaned = apply_plan(df, plan)
+    expected = (df["valor"] - mean) / std
+    assert (cleaned["valor"] - expected).abs().max() < 1e-6
+    # Categorical unchanged
+    assert list(cleaned["categoria"]) == list(df["categoria"])
+    # Default (scale_numeric=False) does not add the step
+    plan_off = build_cleaning_plan(df, scale_numeric=False)
+    assert not any(s["action"] == "scale_standard" for s in plan_off)
