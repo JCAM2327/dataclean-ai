@@ -7,6 +7,19 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-10-23
+
+### Añadido
+- Parámetro opcional `encode_categorical` (`onehot` | `ordinal`) en `build_cleaning_plan`, `analyze_frame` y CLI (`--encode-categorical`).
+- Acciones de plan `encode_onehot` (expansión a dummies) y `encode_ordinal` (mapeo por frecuencia descendente).
+- Parámetro de consulta `encode_categorical` en `POST /datasets`.
+- Prueba unitaria `test_encode_categorical_onehot_and_ordinal`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.18.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados.
+- ROADMAP: ítem de codificación categórica marcado como completado.
+
 ## [0.17.0] — 2026-10-22
 
 ### Añadido

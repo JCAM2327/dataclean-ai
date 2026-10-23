@@ -13,6 +13,7 @@ def build_cleaning_plan(
     df: pd.DataFrame,
     imputation_strategies: dict[str, Any] | None = None,
     scale_numeric: bool = False,
+    encode_categorical: str | None = None,
 ) -> list[dict[str, Any]]:
     """Build an explicit cleaning plan: column, action and justification.
 
@@ -25,11 +26,15 @@ def build_cleaning_plan(
     - mark imputed nulls with a boolean indicator column
     - clip numeric columns that present IQR outliers (bounds from observed data)
     - optionally standardize numeric columns (z-score) using mean and std of observed data
+    - optionally encode categorical columns (one-hot or ordinal by frequency)
 
     imputation_strategies keys:
       - "__numeric__": "median" | "mean" | "mode" | "constant"
       - "__categorical__": "mode" | "median" | "mean" | "constant"
       - column name: same values, or {"strategy": "...", "value": ...} for constant
+
+    encode_categorical: None | "onehot" | "ordinal"
+      Applied only to non-numeric columns that are retained after cleaning rules.
     """
     plan: list[dict[str, Any]] = []
     n_rows = len(df)
@@ -150,6 +155,38 @@ def build_cleaning_plan(
                         },
                     })
 
+        # Optional categorical encoding for non-numeric columns that are kept
+        if encode_categorical and not _mostly_numeric(series):
+            observed = series.dropna()
+            if not observed.empty and nunique > 1:
+                if encode_categorical == "onehot":
+                    categories = sorted(observed.unique().tolist(), key=str)
+                    plan.append({
+                        "column": column,
+                        "action": "encode_onehot",
+                        "justification": (
+                            f"Codificación one-hot de {len(categories)} categorías "
+                            "para uso en modelos que requieren variables numéricas."
+                        ),
+                        "params": {
+                            "categories": [_jsonable(c) for c in categories],
+                            "prefix": column,
+                        },
+                    })
+                elif encode_categorical == "ordinal":
+                    # Ordinal by descending frequency
+                    freq = observed.value_counts()
+                    mapping = {str(_jsonable(k)): int(i) for i, k in enumerate(freq.index)}
+                    plan.append({
+                        "column": column,
+                        "action": "encode_ordinal",
+                        "justification": (
+                            f"Codificación ordinal por frecuencia descendente "
+                            f"({len(mapping)} categorías)."
+                        ),
+                        "params": {"mapping": mapping},
+                    })
+
     return plan
 
 
@@ -208,6 +245,22 @@ def apply_plan(df: pd.DataFrame, plan: list[dict[str, Any]]) -> pd.DataFrame:
                     numeric = pd.to_numeric(out[column], errors="coerce")
                     scaled = (numeric - float(mean)) / float(std)
                     out[column] = scaled.where(numeric.notna(), out[column])
+        elif action == "encode_onehot":
+            if column in out.columns:
+                prefix = params.get("prefix") or column
+                categories = params.get("categories") or []
+                # Build dummies for known categories; unseen become all zeros
+                dummies = pd.DataFrame(index=out.index)
+                for cat in categories:
+                    col_name = f"{prefix}_{cat}"
+                    dummies[col_name] = (out[column].astype(str) == str(cat)).astype(int)
+                out = pd.concat([out.drop(columns=[column]), dummies], axis=1)
+        elif action == "encode_ordinal":
+            if column in out.columns:
+                mapping = params.get("mapping") or {}
+                # Map known values; unseen become -1
+                mapped = out[column].astype(str).map(mapping).fillna(-1).astype(int)
+                out[column] = mapped
         else:
             raise ValueError(f"Acción de plan no soportada: {action}")
     return out

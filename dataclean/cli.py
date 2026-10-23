@@ -20,6 +20,7 @@ def analyze(
     target: str | None = None,
     imputation_strategies: dict | None = None,
     scale_numeric: bool = False,
+    encode_categorical: str | None = None,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
@@ -29,6 +30,7 @@ def analyze(
         target=target,
         imputation_strategies=imputation_strategies,
         scale_numeric=scale_numeric,
+        encode_categorical=encode_categorical,
     )
 
 
@@ -39,6 +41,7 @@ def analyze_frame(
     target: str | None = None,
     imputation_strategies: dict | None = None,
     scale_numeric: bool = False,
+    encode_categorical: str | None = None,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
@@ -46,6 +49,7 @@ def analyze_frame(
         df,
         imputation_strategies=imputation_strategies,
         scale_numeric=scale_numeric,
+        encode_categorical=encode_categorical,
     )
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
@@ -125,6 +129,12 @@ def main() -> None:
         action="store_true",
         help="Incluir estandarización z-score de columnas numéricas en el plan",
     )
+    parser.add_argument(
+        "--encode-categorical",
+        choices=["onehot", "ordinal"],
+        default=None,
+        help="Codificación opcional de columnas categóricas: onehot o ordinal (por frecuencia)",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -145,6 +155,7 @@ def main() -> None:
         target=args.target,
         imputation_strategies=strategies or None,
         scale_numeric=args.scale_numeric,
+        encode_categorical=args.encode_categorical,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:

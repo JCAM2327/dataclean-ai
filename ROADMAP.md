@@ -50,4 +50,4 @@
 
 ## Fase 8 — Codificación de variables
 
-- [ ] Codificación de variables categóricas (one-hot o ordinal) opcional en el plan de limpieza
+- [x] Codificación de variables categóricas (one-hot o ordinal) opcional en el plan de limpieza

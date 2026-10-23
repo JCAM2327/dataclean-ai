@@ -131,3 +131,49 @@ def test_scale_numeric_standardization():
     # Default (scale_numeric=False) does not add the step
     plan_off = build_cleaning_plan(df, scale_numeric=False)
     assert not any(s["action"] == "scale_standard" for s in plan_off)
+
+
+def test_encode_categorical_onehot_and_ordinal():
+    df = pd.DataFrame({
+        "categoria": ["a", "b", "a", "c", "b", None],
+        "valor": [1, 2, 3, 4, 5, 6],
+    })
+    # one-hot
+    plan_oh = build_cleaning_plan(df, encode_categorical="onehot")
+    oh_steps = [s for s in plan_oh if s["action"] == "encode_onehot"]
+    assert len(oh_steps) == 1
+    step = oh_steps[0]
+    assert step["column"] == "categoria"
+    cats = step["params"]["categories"]
+    assert set(cats) == {"a", "b", "c"}
+
+    cleaned_oh = apply_plan(df, plan_oh)
+    assert "categoria" not in cleaned_oh.columns
+    for cat in ["a", "b", "c"]:
+        assert f"categoria_{cat}" in cleaned_oh.columns
+    # Imputation of mode ("a") occurs before encoding, so 3 a's
+    assert cleaned_oh["categoria_a"].sum() == 3
+    assert cleaned_oh["categoria_b"].sum() == 2
+    assert cleaned_oh["categoria_c"].sum() == 1
+    # original numeric preserved
+    assert "valor" in cleaned_oh.columns
+
+    # ordinal
+    plan_ord = build_cleaning_plan(df, encode_categorical="ordinal")
+    ord_steps = [s for s in plan_ord if s["action"] == "encode_ordinal"]
+    assert len(ord_steps) == 1
+    mapping = ord_steps[0]["params"]["mapping"]
+    # frequency: a:2, b:2, c:1 → a and b get 0/1 (order by value_counts which is stable-ish)
+    assert set(mapping.keys()) == {"a", "b", "c"}
+    assert all(v in {0, 1, 2} for v in mapping.values())
+
+    cleaned_ord = apply_plan(df, plan_ord)
+    assert "categoria" in cleaned_ord.columns
+    assert cleaned_ord["categoria"].dtype == int
+    assert set(cleaned_ord["categoria"].unique()) <= set(mapping.values())
+    # No -1 because imputation precedes encoding
+    assert (cleaned_ord["categoria"] == -1).sum() == 0
+
+    # default does not encode
+    plan_none = build_cleaning_plan(df)
+    assert not any(s["action"] in {"encode_onehot", "encode_ordinal"} for s in plan_none)

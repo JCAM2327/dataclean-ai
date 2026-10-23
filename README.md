@@ -1,6 +1,6 @@
 # DataClean AI
 
-Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables y estandarización opcional de columnas numéricas), detectar variable objetivo y comparar modelos baseline.
+Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas y codificación opcional de variables categóricas), detectar variable objetivo y comparar modelos baseline.
 
 Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet.
 
@@ -19,6 +19,7 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - Cabecera obligatoria: `X-User-Id`
 - Cabecera opcional: `X-API-Key` (exigida solo si se configura `DATACLEAN_API_KEY`)
 - Parámetro opcional: `scale_numeric=true` en `POST /datasets` para activar estandarización z-score
+- Parámetro opcional: `encode_categorical=onehot|ordinal` en `POST /datasets` para codificación categórica
 - `POST /datasets` — carga CSV, Excel o Parquet y genera informe
 - `GET /datasets/{id}` — consulta el registro
 - `POST /datasets/{id}/accept` — aplica el plan de limpieza
@@ -29,4 +30,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.17.0
+Versión actual: 0.18.0
