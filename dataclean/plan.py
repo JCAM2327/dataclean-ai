@@ -14,6 +14,7 @@ def build_cleaning_plan(
     imputation_strategies: dict[str, Any] | None = None,
     scale_numeric: bool = False,
     encode_categorical: str | None = None,
+    onehot_drop_first: bool = False,
 ) -> list[dict[str, Any]]:
     """Build an explicit cleaning plan: column, action and justification.
 
@@ -35,6 +36,9 @@ def build_cleaning_plan(
 
     encode_categorical: None | "onehot" | "ordinal"
       Applied only to non-numeric columns that are retained after cleaning rules.
+
+    onehot_drop_first: when encode_categorical is "onehot", omit the first sorted category
+      to avoid perfect multicollinearity (reference category).
     """
     plan: list[dict[str, Any]] = []
     n_rows = len(df)
@@ -161,16 +165,25 @@ def build_cleaning_plan(
             if not observed.empty and nunique > 1:
                 if encode_categorical == "onehot":
                     categories = sorted(observed.unique().tolist(), key=str)
+                    dropped = None
+                    if onehot_drop_first and categories:
+                        dropped = categories[0]
+                        categories = categories[1:]
+                    justification = (
+                        f"Codificación one-hot de {len(categories)} categorías "
+                        "para uso en modelos que requieren variables numéricas."
+                    )
+                    if dropped is not None:
+                        justification += f" Se omite la categoría de referencia {dropped!r} (drop_first)."
                     plan.append({
                         "column": column,
                         "action": "encode_onehot",
-                        "justification": (
-                            f"Codificación one-hot de {len(categories)} categorías "
-                            "para uso en modelos que requieren variables numéricas."
-                        ),
+                        "justification": justification,
                         "params": {
                             "categories": [_jsonable(c) for c in categories],
                             "prefix": column,
+                            "drop_first": onehot_drop_first,
+                            "dropped_category": _jsonable(dropped) if dropped is not None else None,
                         },
                     })
                 elif encode_categorical == "ordinal":
@@ -250,6 +263,7 @@ def apply_plan(df: pd.DataFrame, plan: list[dict[str, Any]]) -> pd.DataFrame:
                 prefix = params.get("prefix") or column
                 categories = params.get("categories") or []
                 # Build dummies for known categories; unseen become all zeros
+                # drop_first is already reflected in the categories list
                 dummies = pd.DataFrame(index=out.index)
                 for cat in categories:
                     col_name = f"{prefix}_{cat}"
