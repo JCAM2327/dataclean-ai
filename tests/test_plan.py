@@ -177,3 +177,30 @@ def test_encode_categorical_onehot_and_ordinal():
     # default does not encode
     plan_none = build_cleaning_plan(df)
     assert not any(s["action"] in {"encode_onehot", "encode_ordinal"} for s in plan_none)
+
+
+def test_onehot_drop_first():
+    df = pd.DataFrame({
+        "categoria": ["a", "b", "a", "c", "b"],
+        "valor": [1, 2, 3, 4, 5],
+    })
+    plan = build_cleaning_plan(df, encode_categorical="onehot", onehot_drop_first=True)
+    steps = [s for s in plan if s["action"] == "encode_onehot"]
+    assert len(steps) == 1
+    step = steps[0]
+    assert step["params"].get("drop_first") is True
+    cats = step["params"]["categories"]
+    # sorted: a, b, c → drop a
+    assert set(cats) == {"b", "c"}
+    assert step["params"].get("dropped_category") == "a"
+
+    cleaned = apply_plan(df, plan)
+    assert "categoria" not in cleaned.columns
+    assert "categoria_a" not in cleaned.columns
+    assert "categoria_b" in cleaned.columns
+    assert "categoria_c" in cleaned.columns
+    # All zeros for reference category 'a'
+    a_rows = df["categoria"] == "a"
+    assert cleaned.loc[a_rows, ["categoria_b", "categoria_c"]].sum().sum() == 0
+    assert cleaned["categoria_b"].sum() == 2
+    assert cleaned["categoria_c"].sum() == 1
