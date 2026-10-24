@@ -51,3 +51,7 @@
 ## Fase 8 — Codificación de variables
 
 - [x] Codificación de variables categóricas (one-hot o ordinal) opcional en el plan de limpieza
+
+## Fase 9 — Refinamientos de codificación
+
+- [x] Soporte de `drop_first` en codificación one-hot para evitar multicolinealidad
