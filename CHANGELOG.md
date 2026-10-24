@@ -7,6 +7,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-10-24
+
+### Añadido
+- Parámetro opcional `onehot_drop_first` en `build_cleaning_plan`, `analyze_frame` y CLI (`--onehot-drop-first`).
+- Cuando es verdadero y `encode_categorical="onehot"`, se omite la primera categoría ordenada como referencia (drop_first) para evitar multicolinealidad perfecta.
+- El paso de plan registra `drop_first` y `dropped_category` en los parámetros.
+- Parámetro de consulta `onehot_drop_first` en `POST /datasets`.
+- Prueba unitaria `test_onehot_drop_first`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.19.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados.
+- ROADMAP: nueva Fase 9 — Refinamientos de codificación, con el ítem de drop_first marcado como completado.
+
 ## [0.18.0] — 2026-10-23
 
 ### Añadido
