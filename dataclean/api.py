@@ -22,14 +22,15 @@ app = FastAPI(
     title="DataClean AI",
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
-        "generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables y estandarización opcional de columnas numéricas), detectar variable objetivo y comparar modelos baseline. "
+        "generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas y codificación opcional de variables categóricas con soporte drop_first), detectar variable objetivo y comparar modelos baseline. "
         "Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet. "
         "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`. "
         "Si se configura la variable de entorno `DATACLEAN_API_KEY`, se exige adicionalmente la cabecera `X-API-Key`. "
         "El parámetro opcional `scale_numeric` activa la estandarización z-score de columnas numéricas en el plan. "
-        "El parámetro opcional `encode_categorical` (onehot|ordinal) activa la codificación de columnas categóricas en el plan."
+        "El parámetro opcional `encode_categorical` (onehot|ordinal) activa la codificación de columnas categóricas en el plan. "
+        "El parámetro opcional `onehot_drop_first` omite la categoría de referencia en codificación one-hot."
     ),
-    version="0.18.0",
+    version="0.19.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -80,7 +81,7 @@ class AcceptResponse(BaseModel):
     status_code=201,
     tags=["Datasets"],
     summary="Cargar dataset tabular",
-    description="Sube un archivo CSV, Excel (.xlsx/.xls) o Parquet, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario. El parámetro opcional scale_numeric activa la estandarización z-score de columnas numéricas. El parámetro opcional encode_categorical (onehot|ordinal) activa la codificación de columnas categóricas.",
+    description="Sube un archivo CSV, Excel (.xlsx/.xls) o Parquet, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario. El parámetro opcional scale_numeric activa la estandarización z-score de columnas numéricas. El parámetro opcional encode_categorical (onehot|ordinal) activa la codificación de columnas categóricas. El parámetro opcional onehot_drop_first omite la categoría de referencia.",
     response_model=UploadResponse,
     responses={
         400: {"description": "Archivo inválido o formato no soportado"},
@@ -98,6 +99,10 @@ async def upload_dataset(
         None,
         description="Codificación opcional de columnas categóricas: onehot o ordinal (por frecuencia)",
         regex="^(onehot|ordinal)$",
+    ),
+    onehot_drop_first: bool = Query(
+        False,
+        description="Al usar one-hot, omitir la primera categoría ordenada como referencia para evitar multicolinealidad",
     ),
 ) -> UploadResponse:
     if not file.filename:
@@ -118,6 +123,7 @@ async def upload_dataset(
         source=file.filename,
         scale_numeric=scale_numeric,
         encode_categorical=encode_categorical,
+        onehot_drop_first=onehot_drop_first,
     )
     record = store.create(user_id, file.filename, df, report)
     return UploadResponse(
