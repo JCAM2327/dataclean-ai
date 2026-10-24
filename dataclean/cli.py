@@ -21,6 +21,7 @@ def analyze(
     imputation_strategies: dict | None = None,
     scale_numeric: bool = False,
     encode_categorical: str | None = None,
+    onehot_drop_first: bool = False,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
@@ -31,6 +32,7 @@ def analyze(
         imputation_strategies=imputation_strategies,
         scale_numeric=scale_numeric,
         encode_categorical=encode_categorical,
+        onehot_drop_first=onehot_drop_first,
     )
 
 
@@ -42,6 +44,7 @@ def analyze_frame(
     imputation_strategies: dict | None = None,
     scale_numeric: bool = False,
     encode_categorical: str | None = None,
+    onehot_drop_first: bool = False,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
@@ -50,6 +53,7 @@ def analyze_frame(
         imputation_strategies=imputation_strategies,
         scale_numeric=scale_numeric,
         encode_categorical=encode_categorical,
+        onehot_drop_first=onehot_drop_first,
     )
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
@@ -135,6 +139,11 @@ def main() -> None:
         default=None,
         help="Codificación opcional de columnas categóricas: onehot o ordinal (por frecuencia)",
     )
+    parser.add_argument(
+        "--onehot-drop-first",
+        action="store_true",
+        help="Al usar one-hot, omitir la primera categoría ordenada como referencia",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -156,6 +165,7 @@ def main() -> None:
         imputation_strategies=strategies or None,
         scale_numeric=args.scale_numeric,
         encode_categorical=args.encode_categorical,
+        onehot_drop_first=args.onehot_drop_first,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
