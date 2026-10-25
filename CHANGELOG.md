@@ -7,6 +7,9 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Notas
+- Revisión del estado del repositorio (2026-10-25): todas las fases del ROADMAP (0 a 9) se encuentran completadas. No existen ítems pendientes de implementación. Se propone como siguiente paso concreto la adición de selección de características básica (por ejemplo, exclusión opcional de columnas de baja varianza residual o alta correlación) o el soporte de mapeos ordinales personalizados en la codificación.
+
 ## [0.19.0] — 2026-10-24
 
 ### Añadido
