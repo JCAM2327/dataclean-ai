@@ -7,6 +7,11 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Notas
+- Revisión del estado de main: ROADMAP.md contiene todas las fases 0 a 9 marcadas como completadas. No existe ítem pendiente.
+- Inconsistencia detectada: CHANGELOG documenta [0.20.0] con soporte de `drop_low_variance_threshold` y actualización de ROADMAP a Fase 10, pero el código en `dataclean/plan.py` es un placeholder de 62 bytes, `dataclean/__init__.py` y `dataclean/api.py` reportan versión 0.19.0, y ROADMAP.md no incluye la Fase 10.
+- No es viable avanzar un ítem del ROADMAP hasta resolver la implementación base de `build_cleaning_plan`, `apply_plan` y `quality_delta` o definir explícitamente la siguiente fase.
+
 ## [0.20.0] — 2026-10-26
 
 ### Añadido
