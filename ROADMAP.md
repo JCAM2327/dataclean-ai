@@ -55,3 +55,13 @@
 ## Fase 9 — Refinamientos de codificación
 
 - [x] Soporte de `drop_first` en codificación one-hot para evitar multicolinealidad
+
+## Nota de estado (2026-10-28)
+
+Todas las fases anteriores están completadas. No hay ítem pendiente.
+
+Bloqueo: `dataclean/plan.py` es un placeholder. La implementación de las funciones de plan es requisito para cualquier avance.
+
+## Fase 10 — Selección de características básica (propuesta)
+
+- [ ] Exclusión opcional de columnas numéricas de baja varianza (`drop_low_variance_threshold`)
