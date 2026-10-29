@@ -1,1 +1,3 @@
-PLACEHOLDER_TO_REPLACE
+"""DataClean AI — profiling, quality checks, cleaning plans (including IQR outlier clipping, configurable imputation strategies, optional numeric standardization, optional categorical encoding with drop_first support and optional exclusion of low-variance numeric columns), target detection, model comparison, dataset upload API (CSV/Excel/Parquet), plan review/accept, report persistence, HTML export, per-user isolation, cleaned CSV download, enriched OpenAPI documentation, optional API key authentication, and API exposure of numeric standardization, categorical encoding, one-hot drop_first and low-variance exclusion."""
+
+__version__ = "0.20.0"
