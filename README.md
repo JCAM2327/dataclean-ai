@@ -1,6 +1,6 @@
 # DataClean AI
 
-Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas y codificación opcional de variables categóricas con soporte drop_first y exclusión opcional de columnas numéricas de baja varianza), detectar variable objetivo y comparar modelos baseline.
+Herramienta para perfilar datasets tabulares, detectar issues de calidad, generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas, codificación opcional de variables categóricas con soporte drop_first, exclusión opcional de columnas numéricas de baja varianza y exclusión opcional de columnas numéricas altamente correlacionadas), detectar variable objetivo y comparar modelos baseline.
 
 Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet.
 
@@ -22,6 +22,7 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - Parámetro opcional: `encode_categorical=onehot|ordinal` en `POST /datasets` para codificación categórica
 - Parámetro opcional: `onehot_drop_first=true` en `POST /datasets` para omitir la categoría de referencia en one-hot
 - Parámetro opcional: `drop_low_variance_threshold=<float>` en `POST /datasets` para excluir columnas numéricas con desvío estándar observado inferior al umbral
+- Parámetro opcional: `drop_high_correlation_threshold=<float>` en `POST /datasets` para excluir columnas numéricas con |correlación| absoluta superior o igual al umbral
 - `POST /datasets` — carga CSV, Excel o Parquet y genera informe
 - `GET /datasets/{id}` — consulta el registro
 - `POST /datasets/{id}/accept` — aplica el plan de limpieza
@@ -32,4 +33,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.20.0
+Versión actual: 0.21.0

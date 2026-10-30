@@ -63,3 +63,7 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 ## Fase 10 — Selección de características básica
 
 - [x] Exclusión opcional de columnas numéricas de baja varianza (`drop_low_variance_threshold`)
+
+## Fase 11 — Selección de características por correlación
+
+- [x] Exclusión opcional de columnas numéricas altamente correlacionadas (`drop_high_correlation_threshold`)

@@ -7,11 +7,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Notas
-- Implementación completa de las funciones de plan en `dataclean/plan.py` (build_cleaning_plan, apply_plan, quality_delta).
-- Soporte de `drop_low_variance_threshold` integrado en plan, CLI y API.
-- Versiones alineadas a 0.20.0.
-- ROADMAP actualizado: bloqueo resuelto y Fase 10 marcada como completada.
+## [0.21.0] — 2026-10-30
+
+### Añadido
+- Parámetro opcional `drop_high_correlation_threshold` en `build_cleaning_plan`, `analyze_frame`, CLI (`--drop-high-correlation-threshold`) y endpoint `POST /datasets`.
+- Cuando se especifica un umbral positivo menor a 1, se identifican pares de columnas numéricas restantes cuya correlación absoluta de Pearson es superior o igual al umbral; se excluye una de ellas (preferencia por mayor tasa de faltantes, luego menor desvío estándar, luego nombre) mediante una acción `drop_column` con razón `high_correlation`.
+- El paso registra la columna correlacionada, el valor de correlación y el umbral en los parámetros.
+- Prueba unitaria `test_drop_high_correlation_threshold`.
+
+### Cambiado
+- Versión del paquete y de la API a 0.21.0.
+- Descripción del paquete, README y esquema OpenAPI actualizados.
+- ROADMAP: nueva Fase 11 — Selección de características por correlación, con el ítem de exclusión por alta correlación marcado como completado.
 
 ## [0.20.0] — 2026-10-26
 

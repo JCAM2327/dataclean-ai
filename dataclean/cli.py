@@ -23,6 +23,7 @@ def analyze(
     encode_categorical: str | None = None,
     onehot_drop_first: bool = False,
     drop_low_variance_threshold: float | None = None,
+    drop_high_correlation_threshold: float | None = None,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
@@ -35,6 +36,7 @@ def analyze(
         encode_categorical=encode_categorical,
         onehot_drop_first=onehot_drop_first,
         drop_low_variance_threshold=drop_low_variance_threshold,
+        drop_high_correlation_threshold=drop_high_correlation_threshold,
     )
 
 
@@ -48,6 +50,7 @@ def analyze_frame(
     encode_categorical: str | None = None,
     onehot_drop_first: bool = False,
     drop_low_variance_threshold: float | None = None,
+    drop_high_correlation_threshold: float | None = None,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
@@ -58,6 +61,7 @@ def analyze_frame(
         encode_categorical=encode_categorical,
         onehot_drop_first=onehot_drop_first,
         drop_low_variance_threshold=drop_low_variance_threshold,
+        drop_high_correlation_threshold=drop_high_correlation_threshold,
     )
     target_report = detect_target(df, target=target)
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
@@ -154,6 +158,12 @@ def main() -> None:
         default=None,
         help="Excluir columnas numéricas cuyo desvío estándar (población) sea inferior a este umbral",
     )
+    parser.add_argument(
+        "--drop-high-correlation-threshold",
+        type=float,
+        default=None,
+        help="Excluir columnas numéricas con |correlación| absoluta superior o igual a este umbral respecto a otra",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -165,7 +175,7 @@ def main() -> None:
         strategies.setdefault("__numeric__", {})
         if isinstance(strategies["__numeric__"], str) and strategies["__numeric__"] == "constant":
             strategies["__numeric__"] = {"strategy": "constant", "value": args.impute_constant_value}
-        strategies.setdefault("__categorical__", {})
+        strategies.setdefault("____categorical__", {})
         if isinstance(strategies["__categorical__"], str) and strategies["__categorical__"] == "constant":
             strategies["__categorical__"] = {"strategy": "constant", "value": args.impute_constant_value}
     report, cleaned = analyze(
@@ -177,6 +187,7 @@ def main() -> None:
         encode_categorical=args.encode_categorical,
         onehot_drop_first=args.onehot_drop_first,
         drop_low_variance_threshold=args.drop_low_variance_threshold,
+        drop_high_correlation_threshold=args.drop_high_correlation_threshold,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
