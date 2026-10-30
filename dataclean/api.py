@@ -22,16 +22,17 @@ app = FastAPI(
     title="DataClean AI",
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
-        "generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas y codificación opcional de variables categóricas con soporte drop_first y exclusión opcional de columnas numéricas de baja varianza), detectar variable objetivo y comparar modelos baseline. "
+        "generar y aplicar planes de limpieza (incluye clipping de outliers IQR, estrategias de imputación configurables, estandarización opcional de columnas numéricas, codificación opcional de variables categóricas con soporte drop_first, exclusión opcional de columnas numéricas de baja varianza y exclusión opcional de columnas numéricas altamente correlacionadas), detectar variable objetivo y comparar modelos baseline. "
         "Soporta carga de CSV, Excel (.xlsx/.xls) y Parquet. "
         "Los informes se aíslan por usuario mediante la cabecera obligatoria `X-User-Id`. "
         "Si se configura la variable de entorno `DATACLEAN_API_KEY`, se exige adicionalmente la cabecera `X-API-Key`. "
         "El parámetro opcional `scale_numeric` activa la estandarización z-score de columnas numéricas en el plan. "
         "El parámetro opcional `encode_categorical` (onehot|ordinal) activa la codificación de columnas categóricas en el plan. "
         "El parámetro opcional `onehot_drop_first` omite la categoría de referencia en codificación one-hot. "
-        "El parámetro opcional `drop_low_variance_threshold` excluye columnas numéricas de baja varianza."
+        "El parámetro opcional `drop_low_variance_threshold` excluye columnas numéricas de baja varianza. "
+        "El parámetro opcional `drop_high_correlation_threshold` excluye columnas numéricas altamente correlacionadas."
     ),
-    version="0.20.0",
+    version="0.21.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -82,7 +83,7 @@ class AcceptResponse(BaseModel):
     status_code=201,
     tags=["Datasets"],
     summary="Cargar dataset tabular",
-    description="Sube un archivo CSV, Excel (.xlsx/.xls) o Parquet, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario. El parámetro opcional scale_numeric activa la estandarización z-score de columnas numéricas. El parámetro opcional encode_categorical (onehot|ordinal) activa la codificación de columnas categóricas. El parámetro opcional onehot_drop_first omite la categoría de referencia. El parámetro opcional drop_low_variance_threshold excluye columnas numéricas de baja varianza.",
+    description="Sube un archivo CSV, Excel (.xlsx/.xls) o Parquet, genera el informe de perfil/calidad/plan/modelado y lo persiste aislado por usuario. El parámetro opcional scale_numeric activa la estandarización z-score de columnas numéricas. El parámetro opcional encode_categorical (onehot|ordinal) activa la codificación de columnas categóricas. El parámetro opcional onehot_drop_first omite la categoría de referencia. El parámetro opcional drop_low_variance_threshold excluye columnas numéricas de baja varianza. El parámetro opcional drop_high_correlation_threshold excluye columnas numéricas altamente correlacionadas.",
     response_model=UploadResponse,
     responses={
         400: {"description": "Archivo inválido o formato no soportado"},
@@ -109,6 +110,10 @@ async def upload_dataset(
         None,
         description="Excluir columnas numéricas cuyo desvío estándar observado (población) sea inferior a este umbral",
     ),
+    drop_high_correlation_threshold: float | None = Query(
+        None,
+        description="Excluir columnas numéricas con |correlación| absoluta superior o igual a este umbral respecto a otra",
+    ),
 ) -> UploadResponse:
     if not file.filename:
         raise HTTPException(status_code=400, detail="Nombre de archivo requerido")
@@ -130,6 +135,7 @@ async def upload_dataset(
         encode_categorical=encode_categorical,
         onehot_drop_first=onehot_drop_first,
         drop_low_variance_threshold=drop_low_variance_threshold,
+        drop_high_correlation_threshold=drop_high_correlation_threshold,
     )
     record = store.create(user_id, file.filename, df, report)
     return UploadResponse(
