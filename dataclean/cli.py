@@ -175,7 +175,7 @@ def main() -> None:
         strategies.setdefault("__numeric__", {})
         if isinstance(strategies["__numeric__"], str) and strategies["__numeric__"] == "constant":
             strategies["__numeric__"] = {"strategy": "constant", "value": args.impute_constant_value}
-        strategies.setdefault("____categorical__", {})
+        strategies.setdefault("__categorical__", {})
         if isinstance(strategies["__categorical__"], str) and strategies["__categorical__"] == "constant":
             strategies["__categorical__"] = {"strategy": "constant", "value": args.impute_constant_value}
     report, cleaned = analyze(
