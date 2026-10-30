@@ -12,6 +12,7 @@ def build_cleaning_plan(
     encode_categorical: str | None = None,
     onehot_drop_first: bool = False,
     drop_low_variance_threshold: float | None = None,
+    drop_high_correlation_threshold: float | None = None,
 ) -> list[dict[str, Any]]:
     """Build an explicit cleaning plan with column, action, justification and optional params."""
     plan: list[dict[str, Any]] = []
@@ -27,6 +28,7 @@ def build_cleaning_plan(
         })
 
     # Identify columns to drop early (constant, ID, low variance)
+    early_dropped: set[str] = set()
     for name in list(df.columns):
         series = df[name]
         nunique = int(series.nunique(dropna=True))
@@ -40,6 +42,7 @@ def build_cleaning_plan(
                 "justification": f"La columna '{name}' es constante y no aporta señal.",
                 "params": {"reason": "constant"},
             })
+            early_dropped.add(str(name))
             continue
 
         # Likely ID: unique object or named id
@@ -50,6 +53,7 @@ def build_cleaning_plan(
                 "justification": f"La columna '{name}' parece un identificador (único o por nombre).",
                 "params": {"reason": "likely_id"},
             })
+            early_dropped.add(str(name))
             continue
 
         # Low variance (numeric only)
@@ -65,10 +69,59 @@ def build_cleaning_plan(
                         "justification": f"La columna numérica '{name}' tiene baja varianza (std={std:.6f} < {drop_low_variance_threshold}).",
                         "params": {"reason": "low_variance", "std": std, "threshold": drop_low_variance_threshold},
                     })
+                    early_dropped.add(str(name))
                     continue
 
+    # High correlation (numeric only, after early drops)
+    if drop_high_correlation_threshold is not None and drop_high_correlation_threshold > 0 and drop_high_correlation_threshold < 1:
+        numeric_cols = []
+        for name in df.columns:
+            if str(name) in early_dropped:
+                continue
+            series = df[name]
+            numeric = pd.to_numeric(series, errors="coerce")
+            if pd.api.types.is_numeric_dtype(series) or (numeric.notna().mean() > 0.8 and len(numeric.dropna()) >= 2):
+                numeric_cols.append(str(name))
+        if len(numeric_cols) >= 2:
+            num_df = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
+            corr = num_df.corr(method="pearson", min_periods=2).abs()
+            pairs = []
+            for i, c1 in enumerate(numeric_cols):
+                for c2 in numeric_cols[i + 1:]:
+                    val = corr.loc[c1, c2]
+                    if pd.notna(val) and val >= drop_high_correlation_threshold:
+                        pairs.append((c1, c2, float(val)))
+            # Sort by correlation descending to process strongest first
+            pairs.sort(key=lambda x: -x[2])
+            dropped_corr: set[str] = set()
+            for c1, c2, corr_val in pairs:
+                if c1 in dropped_corr or c2 in dropped_corr:
+                    continue
+                # Prefer to drop the one with higher missing rate; tie-break by lower std then name
+                m1 = int(df[c1].isna().sum())
+                m2 = int(df[c2].isna().sum())
+                s1 = float(num_df[c1].std(ddof=0)) if len(num_df[c1].dropna()) else 0.0
+                s2 = float(num_df[c2].std(ddof=0)) if len(num_df[c2].dropna()) else 0.0
+                if m1 > m2 or (m1 == m2 and (s1 < s2 or (s1 == s2 and c1 > c2))):
+                    to_drop, keep = c1, c2
+                else:
+                    to_drop, keep = c2, c1
+                plan.append({
+                    "column": to_drop,
+                    "action": "drop_column",
+                    "justification": f"La columna numérica '{to_drop}' está altamente correlacionada con '{keep}' (|corr|={corr_val:.4f} >= {drop_high_correlation_threshold}).",
+                    "params": {
+                        "reason": "high_correlation",
+                        "correlated_with": keep,
+                        "correlation": corr_val,
+                        "threshold": drop_high_correlation_threshold,
+                    },
+                })
+                dropped_corr.add(to_drop)
+                early_dropped.add(to_drop)
+
     # Missing indicators and imputation (only for columns not dropped)
-    dropped = {s["column"] for s in plan if s["action"] == "drop_column"}
+    dropped = early_dropped
     for name in df.columns:
         if str(name) in dropped:
             continue

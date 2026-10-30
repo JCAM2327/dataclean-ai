@@ -222,3 +222,29 @@ def test_drop_low_variance_threshold():
     assert low_step["params"]["reason"] == "low_variance"
     assert "std" in low_step["params"]
     assert low_step["params"]["threshold"] == 0.05
+
+
+def test_drop_high_correlation_threshold():
+    df = pd.DataFrame({
+        "a": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "b": [1.1, 2.1, 3.0, 4.1, 5.0],  # high corr with a
+        "c": [10.0, 1.0, 20.0, 2.0, 30.0],  # low corr
+        "d": [5.0, 4.0, 3.0, 2.0, 1.0],  # negative high corr with a
+    })
+    plan = build_cleaning_plan(df, drop_high_correlation_threshold=0.95)
+    actions = {(s["column"], s["action"]) for s in plan}
+    # Should drop one of a/b and one of a/d (or equivalent)
+    drop_steps = [s for s in plan if s["action"] == "drop_column" and s.get("params", {}).get("reason") == "high_correlation"]
+    assert len(drop_steps) >= 1
+    dropped_cols = {s["column"] for s in drop_steps}
+    # At least b or a, and d or a should be candidates; verify params
+    for step in drop_steps:
+        assert step["params"]["reason"] == "high_correlation"
+        assert "correlated_with" in step["params"]
+        assert step["params"]["correlation"] >= 0.95
+        assert step["params"]["threshold"] == 0.95
+    # c should not be dropped for correlation
+    assert "c" not in dropped_cols
+    # Default does not drop
+    plan_off = build_cleaning_plan(df)
+    assert not any(s.get("params", {}).get("reason") == "high_correlation" for s in plan_off)
