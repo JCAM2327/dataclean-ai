@@ -7,6 +7,17 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.33.0] — 2026-11-10
+
+### Añadido
+- Persistencia del resultado del asesor de modelos en el registro del dataset (`meta.json`) al cargar y al aceptar el plan.
+- El endpoint `GET /datasets/{id}/advisor` y la generación del informe HTML reutilizan el asesor persistido, evitando recomputación en consultas repetidas.
+- Actualización automática del asesor sobre la vista limpia al aceptar el plan.
+
+### Cambiado
+- Versión del paquete y de la API a 0.33.0.
+- ROADMAP: nueva Fase 24 — Persistencia del asesor de modelos, marcada como completada.
+
 ## [0.32.0] — 2026-11-09
 
 ### Añadido

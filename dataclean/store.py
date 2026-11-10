@@ -55,8 +55,12 @@ class DatasetStore:
 
         snapshot_name: str | None = None
         try:
-            df.to_parquet(folder / self.SNAPSHOT_FILENAME, index=False)
-            snapshot_name = self.SNAPSHOT_FILENAME
+            snapshot_path = folder / self.SNAPSHOT_FILENAME
+            df.to_parquet(snapshot_path, index=False)
+            if snapshot_path.exists() and snapshot_path.stat().st_size > 0:
+                snapshot_name = self.SNAPSHOT_FILENAME
+            else:
+                snapshot_path.unlink(missing_ok=True)
         except Exception:
             snapshot_name = None
 
@@ -145,7 +149,7 @@ class DatasetStore:
 
         snapshot_name = record.get("snapshot_file") or self.SNAPSHOT_FILENAME
         snapshot_path = folder / snapshot_name
-        if snapshot_path.exists():
+        if snapshot_path.exists() and snapshot_path.stat().st_size > 0:
             return pd.read_parquet(snapshot_path)
 
         original_name = record.get("original_file") or f"{self.ORIGINAL_STEM}.csv"
@@ -166,6 +170,9 @@ class DatasetStore:
         if cleaned is not None:
             cleaned.to_csv(folder / "cleaned.csv", index=False)
             try:
-                cleaned.to_parquet(folder / "cleaned.parquet", index=False)
+                parquet_path = folder / "cleaned.parquet"
+                cleaned.to_parquet(parquet_path, index=False)
+                if not parquet_path.exists() or parquet_path.stat().st_size == 0:
+                    parquet_path.unlink(missing_ok=True)
             except Exception:
                 pass

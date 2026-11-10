@@ -29,9 +29,9 @@ app = FastAPI(
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
-        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering."
+        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering, persistido en el registro del dataset."
     ),
-    version="0.32.0",
+    version="0.33.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -81,7 +81,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.32.0"}
+    return {"status": "ok", "version": "0.33.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
@@ -124,6 +124,16 @@ async def upload_dataset(
         drop_low_importance=drop_low_importance,
     )
     record = store.create(user_id, filename, df, report, content=content)
+    try:
+        advice = suggest_modeling_strategy(
+            df,
+            report.get("target"),
+            report.get("modeling"),
+        )
+        record["advisor"] = advice
+        store.update(user_id, record["dataset_id"], record)
+    except Exception:
+        pass
     return record
 
 
@@ -159,11 +169,14 @@ def preview_dataset(
     try:
         if record.get("applied"):
             folder = store.dataset_dir(user_id, dataset_id)
-            cleaned_path = folder / "cleaned.parquet"
-            if cleaned_path.exists():
-                df = pd.read_parquet(cleaned_path)
+            cleaned_parquet = folder / "cleaned.parquet"
+            cleaned_csv = folder / "cleaned.csv"
+            if cleaned_parquet.exists() and cleaned_parquet.stat().st_size > 0:
+                df = pd.read_parquet(cleaned_parquet)
+            elif cleaned_csv.exists():
+                df = pd.read_csv(cleaned_csv)
             else:
-                df = pd.read_csv(folder / "cleaned.csv")
+                raise FileNotFoundError("No cleaned data")
             source = "cleaned"
         else:
             df = store.load_original(user_id, dataset_id)
@@ -192,6 +205,15 @@ def accept_plan(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[st
         plan = record["report"].get("plan") or []
         cleaned = apply_plan(df, plan)
         record["applied"] = True
+        try:
+            advice = suggest_modeling_strategy(
+                cleaned,
+                record["report"].get("target"),
+                record["report"].get("modeling"),
+            )
+            record["advisor"] = advice
+        except Exception:
+            pass
         store.update(user_id, dataset_id, record, cleaned=cleaned)
         return record
     except Exception as exc:
@@ -278,20 +300,29 @@ def get_advisor(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[st
     record = store.get(user_id, dataset_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Dataset no encontrado")
+    if record.get("advisor"):
+        advice = dict(record["advisor"])
+        advice["dataset_id"] = dataset_id
+        return advice
     try:
         if record.get("applied"):
             folder = store.dataset_dir(user_id, dataset_id)
-            cleaned_path = folder / "cleaned.parquet"
-            if cleaned_path.exists():
-                df = pd.read_parquet(cleaned_path)
+            cleaned_parquet = folder / "cleaned.parquet"
+            cleaned_csv = folder / "cleaned.csv"
+            if cleaned_parquet.exists() and cleaned_parquet.stat().st_size > 0:
+                df = pd.read_parquet(cleaned_parquet)
+            elif cleaned_csv.exists():
+                df = pd.read_csv(cleaned_csv)
             else:
-                df = pd.read_csv(folder / "cleaned.csv")
+                raise FileNotFoundError("No cleaned data")
         else:
             df = store.load_original(user_id, dataset_id)
         target_report = record["report"].get("target")
         model_report = record["report"].get("modeling")
         advice = suggest_modeling_strategy(df, target_report, model_report)
         advice["dataset_id"] = dataset_id
+        record["advisor"] = advice
+        store.update(user_id, dataset_id, record)
         return advice
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -302,15 +333,28 @@ def get_report_html(dataset_id: str, user_id: str = Depends(get_user_id)) -> HTM
     record = store.get(user_id, dataset_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Dataset no encontrado")
-    try:
-        df = store.load_original(user_id, dataset_id)
-        target_report = record["report"].get("target")
-        model_report = record["report"].get("modeling")
-        advice = suggest_modeling_strategy(df, target_report, model_report)
-        record = dict(record)
-        record["advisor"] = advice
-    except Exception:
-        pass
+    if not record.get("advisor"):
+        try:
+            if record.get("applied"):
+                folder = store.dataset_dir(user_id, dataset_id)
+                cleaned_parquet = folder / "cleaned.parquet"
+                cleaned_csv = folder / "cleaned.csv"
+                if cleaned_parquet.exists() and cleaned_parquet.stat().st_size > 0:
+                    df = pd.read_parquet(cleaned_parquet)
+                elif cleaned_csv.exists():
+                    df = pd.read_csv(cleaned_csv)
+                else:
+                    raise FileNotFoundError("No cleaned data")
+            else:
+                df = store.load_original(user_id, dataset_id)
+            target_report = record["report"].get("target")
+            model_report = record["report"].get("modeling")
+            advice = suggest_modeling_strategy(df, target_report, model_report)
+            record = dict(record)
+            record["advisor"] = advice
+            store.update(user_id, dataset_id, record)
+        except Exception:
+            pass
     html = render_report_html(record)
     return HTMLResponse(content=html)
 

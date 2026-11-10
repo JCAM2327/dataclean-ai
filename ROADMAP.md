@@ -128,3 +128,9 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Evaluación mínima de clustering (KMeans + silueta) cuando es viable
 - [x] Inclusión de las recomendaciones y resultados de clustering en el informe HTML
 - [x] Pruebas de API para el endpoint de asesor
+
+## Fase 24 — Persistencia del asesor de modelos
+
+- [x] Cálculo y almacenamiento del asesor en el registro del dataset al cargar
+- [x] Actualización del asesor sobre la vista limpia al aceptar el plan
+- [x] Reutilización del asesor persistido en el endpoint y en el informe HTML para evitar recomputación

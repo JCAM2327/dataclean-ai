@@ -151,3 +151,20 @@ def test_advisor_endpoint():
     assert isinstance(body["recommendations"], list)
     assert "clustering_viable" in body
     assert body["strategy"] in {"supervised", "unsupervised", "insufficient"}
+
+    # El asesor debe quedar persistido en el registro
+    record = client.get(f"/datasets/{dataset_id}", headers=HEADERS).json()
+    assert "advisor" in record
+    assert record["advisor"]["strategy"] == body["strategy"]
+
+
+def test_advisor_persisted_after_accept():
+    data = _upload_sample()
+    dataset_id = data["dataset_id"]
+
+    accept = client.post(f"/datasets/{dataset_id}/accept", headers=HEADERS)
+    assert accept.status_code == 200
+    record = accept.json()
+    assert record["applied"] is True
+    assert "advisor" in record
+    assert "strategy" in record["advisor"]
