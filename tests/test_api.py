@@ -168,3 +168,11 @@ def test_advisor_persisted_after_accept():
     assert record["applied"] is True
     assert "advisor" in record
     assert "strategy" in record["advisor"]
+
+
+def test_clusters_endpoint_unavailable_for_small_sample():
+    data = _upload_sample()
+    dataset_id = data["dataset_id"]
+    response = client.get(f"/datasets/{dataset_id}/clusters", headers=HEADERS)
+    assert response.status_code == 404
+    assert "no disponibles" in response.json()["detail"]

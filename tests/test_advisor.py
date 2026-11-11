@@ -32,6 +32,12 @@ def test_suggest_unsupervised_when_no_target():
     assert result["clustering_viable"] is True
     assert result["numeric_columns_count"] == 2
     assert any("Clustering viable" in r for r in result["recommendations"])
+    cr = result.get("clustering_results")
+    assert cr is not None
+    assert "labels" in cr
+    assert isinstance(cr["labels"], list)
+    assert len(cr["labels"]) == cr["n_samples"]
+    assert all(isinstance(l, int) for l in cr["labels"])
 
 
 def test_insufficient_small_data():

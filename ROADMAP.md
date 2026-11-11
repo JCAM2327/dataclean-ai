@@ -134,3 +134,9 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Cálculo y almacenamiento del asesor en el registro del dataset al cargar
 - [x] Actualización del asesor sobre la vista limpia al aceptar el plan
 - [x] Reutilización del asesor persistido en el endpoint y en el informe HTML para evitar recomputación
+
+## Fase 25 — Exposición de etiquetas de clustering
+
+- [x] Inclusión de las etiquetas de cluster del mejor k en el resultado de clustering del asesor
+- [x] Endpoint `GET /datasets/{id}/clusters` para consultar las asignaciones de cluster
+- [x] Pruebas que verifican la disponibilidad de etiquetas

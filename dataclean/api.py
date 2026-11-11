@@ -29,9 +29,9 @@ app = FastAPI(
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
-        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering, persistido en el registro del dataset."
+        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset."
     ),
-    version="0.33.0",
+    version="0.34.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -81,7 +81,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.33.0"}
+    return {"status": "ok", "version": "0.34.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
@@ -326,6 +326,26 @@ def get_advisor(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[st
         return advice
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/clusters", tags=["Informes"])
+def get_clusters(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[str, Any]:
+    """Devuelve las etiquetas de clustering del mejor k cuando están disponibles en el asesor persistido."""
+    record = store.get(user_id, dataset_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Dataset no encontrado")
+    advisor = record.get("advisor") or {}
+    cr = advisor.get("clustering_results") or {}
+    labels = cr.get("labels")
+    if labels is None:
+        raise HTTPException(status_code=404, detail="Etiquetas de clustering no disponibles")
+    return {
+        "dataset_id": dataset_id,
+        "best_k": cr.get("best_k"),
+        "best_silhouette": cr.get("best_silhouette"),
+        "n_samples": cr.get("n_samples"),
+        "labels": labels,
+    }
 
 
 @app.get("/datasets/{dataset_id}/report.html", response_class=HTMLResponse, tags=["Informes"])

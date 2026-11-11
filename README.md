@@ -39,6 +39,7 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - `GET /datasets/{id}/report.html` — informe HTML autocontenido (incluye barras de importancias agregadas y sección de asesor)
 - `GET /datasets/{id}/importances` — importancias de variables persistidas de los modelos no baseline (incluye agregación)
 - `GET /datasets/{id}/advisor` — recomendaciones del asesor de modelos (incluye evaluación mínima de clustering cuando es viable)
+- `GET /datasets/{id}/clusters` — etiquetas de clustering del mejor k cuando están disponibles
 
 ### Configuración operativa
 
@@ -51,4 +52,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.33.0
+Versión actual: 0.34.0
