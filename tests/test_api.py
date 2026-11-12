@@ -26,6 +26,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert response.json()["version"] == "0.35.0"
 
 
 def test_upload_and_get_importances():
@@ -176,3 +177,33 @@ def test_clusters_endpoint_unavailable_for_small_sample():
     response = client.get(f"/datasets/{dataset_id}/clusters", headers=HEADERS)
     assert response.status_code == 404
     assert "no disponibles" in response.json()["detail"]
+
+
+def test_download_cleaned_requires_accept():
+    data = _upload_sample()
+    dataset_id = data["dataset_id"]
+    response = client.get(f"/datasets/{dataset_id}/download", headers=HEADERS)
+    assert response.status_code == 400
+    assert "no ha sido aceptado" in response.json()["detail"]
+
+
+def test_download_cleaned_after_accept():
+    data = _upload_sample()
+    dataset_id = data["dataset_id"]
+    accept = client.post(f"/datasets/{dataset_id}/accept", headers=HEADERS)
+    assert accept.status_code == 200
+
+    download = client.get(f"/datasets/{dataset_id}/download", headers=HEADERS)
+    assert download.status_code == 200
+    assert download.headers["content-type"].startswith("text/csv")
+    assert "attachment" in download.headers.get("content-disposition", "")
+    content = download.text
+    assert len(content) > 0
+    assert "," in content  # basic CSV check
+
+    # include_clusters should still work (no labels for small sample, so no extra column)
+    download_clusters = client.get(
+        f"/datasets/{dataset_id}/download?include_clusters=true", headers=HEADERS
+    )
+    assert download_clusters.status_code == 200
+    assert download_clusters.headers["content-type"].startswith("text/csv")
