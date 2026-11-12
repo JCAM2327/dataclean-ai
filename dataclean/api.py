@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import os
 import time
 from pathlib import Path
@@ -11,7 +12,7 @@ import pandas as pd
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from dataclean.advisor import suggest_modeling_strategy
@@ -29,9 +30,10 @@ app = FastAPI(
     description=(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
-        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset."
+        "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset, "
+        "y descarga del CSV limpio con columna opcional de etiquetas de cluster."
     ),
-    version="0.34.0",
+    version="0.35.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -81,7 +83,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.34.0"}
+    return {"status": "ok", "version": "0.35.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
@@ -346,6 +348,49 @@ def get_clusters(dataset_id: str, user_id: str = Depends(get_user_id)) -> dict[s
         "n_samples": cr.get("n_samples"),
         "labels": labels,
     }
+
+
+@app.get("/datasets/{dataset_id}/download", tags=["Informes"])
+def download_cleaned(
+    dataset_id: str,
+    user_id: str = Depends(get_user_id),
+    include_clusters: bool = Query(False, description="Incluir columna 'cluster' si las etiquetas están disponibles y coinciden en longitud"),
+):
+    """Descarga el dataset limpio en formato CSV. Opcionalmente añade la columna de etiquetas de cluster."""
+    record = store.get(user_id, dataset_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Dataset no encontrado")
+    if not record.get("applied"):
+        raise HTTPException(status_code=400, detail="El plan de limpieza no ha sido aceptado")
+    folder = store.dataset_dir(user_id, dataset_id)
+    cleaned_parquet = folder / "cleaned.parquet"
+    cleaned_csv = folder / "cleaned.csv"
+    try:
+        if cleaned_parquet.exists() and cleaned_parquet.stat().st_size > 0:
+            df = pd.read_parquet(cleaned_parquet)
+        elif cleaned_csv.exists():
+            df = pd.read_csv(cleaned_csv)
+        else:
+            raise FileNotFoundError("No cleaned data")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    if include_clusters:
+        advisor = record.get("advisor") or {}
+        cr = advisor.get("clustering_results") or {}
+        labels = cr.get("labels")
+        if labels is not None and len(labels) == len(df):
+            df = df.copy()
+            df["cluster"] = labels
+
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    stream.seek(0)
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=cleaned_{dataset_id}.csv"},
+    )
 
 
 @app.get("/datasets/{dataset_id}/report.html", response_class=HTMLResponse, tags=["Informes"])
