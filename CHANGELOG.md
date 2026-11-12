@@ -7,6 +7,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.35.0] — 2026-11-12
+
+### Añadido
+- Endpoint `GET /datasets/{id}/download` que retorna el dataset limpio en formato CSV tras la aceptación del plan.
+- Parámetro opcional `include_clusters=true` en el endpoint de descarga que añade una columna `cluster` cuando las etiquetas del asesor coinciden en longitud con el dataframe limpio.
+- Pruebas de API que verifican el requisito de aceptación previa y la respuesta CSV.
+
+### Cambiado
+- Versión del paquete y de la API a 0.35.0.
+- ROADMAP: nueva Fase 26 — Descarga del CSV limpio con etiquetas de cluster opcionales, marcada como completada.
+- Descripción del paquete y README actualizados.
+
 ## [0.34.0] — 2026-11-11
 
 ### Añadido
