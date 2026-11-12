@@ -140,3 +140,9 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Inclusión de las etiquetas de cluster del mejor k en el resultado de clustering del asesor
 - [x] Endpoint `GET /datasets/{id}/clusters` para consultar las asignaciones de cluster
 - [x] Pruebas que verifican la disponibilidad de etiquetas
+
+## Fase 26 — Descarga del CSV limpio con etiquetas de cluster opcionales
+
+- [x] Endpoint `GET /datasets/{id}/download` que retorna el dataset limpio en CSV
+- [x] Parámetro opcional `include_clusters` para añadir columna de etiquetas cuando es viable
+- [x] Pruebas de API para el endpoint de descarga
