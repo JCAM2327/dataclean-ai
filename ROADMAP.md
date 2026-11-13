@@ -146,3 +146,8 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Endpoint `GET /datasets/{id}/download` que retorna el dataset limpio en CSV
 - [x] Parámetro opcional `include_clusters` para añadir columna de etiquetas cuando es viable
 - [x] Pruebas de API para el endpoint de descarga
+
+## Fase 27 — Visualización de clusters en informe HTML
+
+- [ ] Sección dedicada en el informe HTML que muestre la distribución de etiquetas de cluster (conteos y porcentajes) cuando estén disponibles en el asesor persistido.
+- [ ] Pruebas que verifiquen la presencia de la sección de clusters en el HTML generado.

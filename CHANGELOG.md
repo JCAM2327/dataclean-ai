@@ -7,6 +7,9 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Notas
+- Revisión de estado del repositorio (2026-11-13): todas las fases del ROADMAP (0 a 26) se encuentran completadas. No existe ítem pendiente definido. Se documenta el bloqueo y se propone la siguiente fase concreta.
+
 ## [0.35.0] — 2026-11-12
 
 ### Añadido
