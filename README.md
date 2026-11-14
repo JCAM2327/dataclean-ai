@@ -37,7 +37,7 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - `POST /datasets/{id}/validate` — evalúa reglas y calcula el score de calidad
 - `POST /datasets/{id}/accept` — aplica el plan de limpieza
 - `GET /datasets/{id}/download` — descarga el CSV limpio (opcionalmente con columna de clusters mediante `?include_clusters=true`)
-- `GET /datasets/{id}/report.html` — informe HTML autocontenido (incluye barras de importancias agregadas y sección de asesor)
+- `GET /datasets/{id}/report.html` — informe HTML autocontenido (incluye barras de importancias agregadas, sección de asesor y distribución de clusters cuando está disponible)
 - `GET /datasets/{id}/importances` — importancias de variables persistidas de los modelos no baseline (incluye agregación)
 - `GET /datasets/{id}/advisor` — recomendaciones del asesor de modelos (incluye evaluación mínima de clustering cuando es viable)
 - `GET /datasets/{id}/clusters` — etiquetas de clustering del mejor k cuando están disponibles
@@ -53,4 +53,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.35.0
+Versión actual: 0.36.0

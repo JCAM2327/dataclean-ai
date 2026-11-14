@@ -7,8 +7,16 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Notas
-- Revisión de estado del repositorio (2026-11-13): todas las fases del ROADMAP (0 a 26) se encuentran completadas. No existe ítem pendiente definido. Se documenta el bloqueo y se propone la siguiente fase concreta.
+## [0.36.0] — 2026-11-14
+
+### Añadido
+- Sección dedicada en el informe HTML autocontenido que muestra la distribución de etiquetas de cluster (conteos y porcentajes) cuando están disponibles en el resultado de clustering del asesor persistido.
+- Pruebas unitarias que verifican la presencia de la sección de distribución de clusters en el HTML generado.
+
+### Cambiado
+- Versión del paquete y de la API a 0.36.0.
+- ROADMAP: Fase 27 — Visualización de clusters en informe HTML, marcada como completada.
+- Descripción del paquete y README actualizados.
 
 ## [0.35.0] — 2026-11-12
 

@@ -32,3 +32,35 @@ def test_html_includes_aggregated_importance_bars():
     assert "bar-track" in html
     assert "edad" in html
     assert "Visualización (importancia máxima)" in html
+
+
+def test_html_includes_cluster_distribution():
+    record = {
+        "filename": "test.csv",
+        "dataset_id": "abc",
+        "created_at": "2026-11-14",
+        "applied": False,
+        "summary": {"issue_count": 0},
+        "report": {
+            "issues": [],
+            "plan": [],
+            "target": {"found": False},
+            "modeling": {},
+        },
+        "advisor": {
+            "strategy": "unsupervised",
+            "clustering_viable": True,
+            "clustering_results": {
+                "best_k": 2,
+                "best_silhouette": 0.45,
+                "n_samples": 10,
+                "labels": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+            },
+        },
+    }
+    html = render_report_html(record)
+    assert "Distribución de etiquetas de cluster" in html
+    assert "Cluster" in html
+    assert "Conteo" in html
+    assert "Porcentaje" in html
+    assert "50.0%" in html

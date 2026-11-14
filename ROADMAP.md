@@ -149,5 +149,5 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 
 ## Fase 27 — Visualización de clusters en informe HTML
 
-- [ ] Sección dedicada en el informe HTML que muestre la distribución de etiquetas de cluster (conteos y porcentajes) cuando estén disponibles en el asesor persistido.
-- [ ] Pruebas que verifiquen la presencia de la sección de clusters en el HTML generado.
+- [x] Sección dedicada en el informe HTML que muestre la distribución de etiquetas de cluster (conteos y porcentajes) cuando estén disponibles en el asesor persistido.
+- [x] Pruebas que verifiquen la presencia de la sección de clusters en el HTML generado.

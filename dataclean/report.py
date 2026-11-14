@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from html import escape
 from typing import Any
 
@@ -217,6 +218,24 @@ def _advisor_section(advisor: dict[str, Any]) -> str:
         scores = cr.get("silhouette_scores") or {}
         if scores:
             html += "<p>Siluetas por k: " + ", ".join(f"k={k}: {v}" for k, v in scores.items()) + "</p>"
+        labels = cr.get("labels")
+        if labels and isinstance(labels, list) and len(labels) > 0:
+            counts = Counter(labels)
+            total = len(labels)
+            html += "<h4>Distribución de etiquetas de cluster</h4>"
+            headers = ["Cluster", "Conteo", "Porcentaje"]
+            body = []
+            for label in sorted(counts.keys()):
+                count = counts[label]
+                pct = (count / total) * 100
+                body.append(
+                    "<tr>"
+                    f"<td>{escape(str(label))}</td>"
+                    f"<td>{count}</td>"
+                    f"<td>{pct:.1f}%</td>"
+                    "</tr>"
+                )
+            html += _html_table(headers, body)
     return html
 
 
