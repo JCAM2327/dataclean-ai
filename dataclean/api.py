@@ -31,9 +31,9 @@ app = FastAPI(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
         "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset, "
-        "y descarga del CSV limpio con columna opcional de etiquetas de cluster."
+        "descarga del CSV limpio con columna opcional de etiquetas de cluster y visualización de distribución de clusters en el informe HTML."
     ),
-    version="0.35.0",
+    version="0.36.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -83,7 +83,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.35.0"}
+    return {"status": "ok", "version": "0.36.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
