@@ -26,7 +26,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.35.0"
+    assert response.json()["version"] == "0.38.0"
 
 
 def test_upload_and_get_importances():
@@ -207,3 +207,16 @@ def test_download_cleaned_after_accept():
     )
     assert download_clusters.status_code == 200
     assert download_clusters.headers["content-type"].startswith("text/csv")
+
+
+def test_download_cleaned_parquet_format():
+    data = _upload_sample()
+    dataset_id = data["dataset_id"]
+    accept = client.post(f"/datasets/{dataset_id}/accept", headers=HEADERS)
+    assert accept.status_code == 200
+
+    download = client.get(f"/datasets/{dataset_id}/download?format=parquet", headers=HEADERS)
+    assert download.status_code == 200
+    assert download.headers["content-type"] == "application/octet-stream"
+    assert "cleaned_" in download.headers.get("content-disposition", "")
+    assert download.content[:4] == b"PAR1"  # Parquet magic

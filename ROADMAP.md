@@ -157,3 +157,8 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Inclusión de la inercia del mejor modelo KMeans en el resultado de clustering del asesor
 - [x] Visualización de la inercia en el informe HTML autocontenido
 - [x] Pruebas unitarias que verifican la métrica y su exposición
+
+## Fase 29 — Descarga del dataset limpio en formato Parquet
+
+- [x] Parámetro opcional `format=parquet` en `GET /datasets/{id}/download` para exportar el dataset limpio como Parquet (además del CSV por defecto)
+- [x] Pruebas de API que verifican el formato Parquet y el magic number
