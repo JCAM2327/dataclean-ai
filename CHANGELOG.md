@@ -7,6 +7,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.39.0] — 2026-11-17
+
+### Añadido
+- Inclusión del índice Davies-Bouldin (`best_davies_bouldin`) del mejor modelo KMeans en el resultado de clustering del asesor de modelos.
+- Visualización de la métrica Davies-Bouldin en la sección de evaluación de clustering del informe HTML autocontenido.
+- Pruebas unitarias que verifican la presencia y el tipo de `best_davies_bouldin` en el asesor.
+
+### Cambiado
+- Versión del paquete y de la API a 0.39.0.
+- ROADMAP: nueva Fase 30 — Exposición del índice Davies-Bouldin en clustering, marcada como completada.
+- Descripciones del paquete, API y README actualizadas.
+
 ## [0.38.0] — 2026-11-16
 
 ### Añadido

@@ -162,3 +162,9 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 
 - [x] Parámetro opcional `format=parquet` en `GET /datasets/{id}/download` para exportar el dataset limpio como Parquet (además del CSV por defecto)
 - [x] Pruebas de API que verifican el formato Parquet y el magic number
+
+## Fase 30 — Exposición del índice Davies-Bouldin en clustering
+
+- [x] Inclusión del índice Davies-Bouldin del mejor modelo KMeans en el resultado de clustering del asesor
+- [x] Visualización de la métrica en el informe HTML autocontenido
+- [x] Pruebas unitarias que verifican la métrica y su exposición

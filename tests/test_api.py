@@ -26,7 +26,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.38.0"
+    assert response.json()["version"] == "0.39.0"
 
 
 def test_upload_and_get_importances():

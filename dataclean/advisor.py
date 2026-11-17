@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, davies_bouldin_score
 from sklearn.preprocessing import StandardScaler
 
 
@@ -76,6 +76,7 @@ def suggest_modeling_strategy(
                 best_score = -1.0
                 best_labels: list[int] | None = None
                 best_inertia: float | None = None
+                best_db: float | None = None
                 max_k = min(5, max(2, len(X) // 5))
                 for k in range(2, max_k + 1):
                     km = KMeans(n_clusters=k, random_state=42, n_init=10)
@@ -87,11 +88,16 @@ def suggest_modeling_strategy(
                         best_k = k
                         best_labels = labels.tolist()
                         best_inertia = float(km.inertia_)
+                        try:
+                            best_db = float(davies_bouldin_score(X_scaled, labels))
+                        except Exception:
+                            best_db = None
                 if best_k is not None and best_labels is not None:
                     clustering_results = {
                         "best_k": best_k,
                         "best_silhouette": round(best_score, 4),
                         "best_inertia": round(best_inertia, 4) if best_inertia is not None else None,
+                        "best_davies_bouldin": round(best_db, 4) if best_db is not None else None,
                         "silhouette_scores": scores,
                         "n_samples": int(len(X)),
                         "labels": best_labels,
