@@ -42,6 +42,8 @@ def test_suggest_unsupervised_when_no_target():
     assert isinstance(cr["best_inertia"], (int, float)) or cr["best_inertia"] is None
     assert "best_davies_bouldin" in cr
     assert isinstance(cr["best_davies_bouldin"], (int, float)) or cr["best_davies_bouldin"] is None
+    assert "best_calinski_harabasz" in cr
+    assert isinstance(cr["best_calinski_harabasz"], (int, float)) or cr["best_calinski_harabasz"] is None
 
 
 def test_insufficient_small_data():
