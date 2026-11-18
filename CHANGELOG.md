@@ -7,6 +7,18 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.40.0] — 2026-11-18
+
+### Añadido
+- Inclusión del índice Calinski-Harabasz (`best_calinski_harabasz`) del mejor modelo KMeans en el resultado de clustering del asesor de modelos.
+- Visualización de la métrica Calinski-Harabasz en la sección de evaluación de clustering del informe HTML autocontenido.
+- Pruebas unitarias que verifican la presencia y el tipo de `best_calinski_harabasz` en el asesor.
+
+### Cambiado
+- Versión del paquete y de la API a 0.40.0.
+- ROADMAP: nueva Fase 31 — Exposición del índice Calinski-Harabasz en clustering, marcada como completada.
+- Descripciones del paquete, API y README actualizadas.
+
 ## [0.39.0] — 2026-11-17
 
 ### Añadido
