@@ -168,3 +168,9 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Inclusión del índice Davies-Bouldin del mejor modelo KMeans en el resultado de clustering del asesor
 - [x] Visualización de la métrica en el informe HTML autocontenido
 - [x] Pruebas unitarias que verifican la métrica y su exposición
+
+## Fase 31 — Exposición del índice Calinski-Harabasz en clustering
+
+- [x] Inclusión del índice Calinski-Harabasz del mejor modelo KMeans en el resultado de clustering del asesor
+- [x] Visualización de la métrica en el informe HTML autocontenido
+- [x] Pruebas unitarias que verifican la métrica y su exposición
