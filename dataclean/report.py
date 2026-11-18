@@ -215,6 +215,7 @@ def _advisor_section(advisor: dict[str, Any]) -> str:
             ("Silueta", cr.get("best_silhouette")),
             ("Inercia", cr.get("best_inertia")),
             ("Davies-Bouldin", cr.get("best_davies_bouldin")),
+            ("Calinski-Harabasz", cr.get("best_calinski_harabasz")),
             ("Muestras", cr.get("n_samples")),
         ])
         scores = cr.get("silhouette_scores") or {}
