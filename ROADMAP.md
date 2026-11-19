@@ -174,3 +174,13 @@ Implementación base de `dataclean/plan.py` restaurada (build_cleaning_plan, app
 - [x] Inclusión del índice Calinski-Harabasz del mejor modelo KMeans en el resultado de clustering del asesor
 - [x] Visualización de la métrica en el informe HTML autocontenido
 - [x] Pruebas unitarias que verifican la métrica y su exposición
+
+## Nota de estado (2026-11-19)
+
+Todas las fases 0-31 se encuentran completadas. El proyecto cuenta con perfilado, planes de limpieza avanzados, modelado baseline, API completa con aislamiento por usuario, EDA, validación, asesor de modelos y métricas de clustering internas.
+
+## Fase 32 — Configuración avanzada del plan de limpieza vía API
+
+- [ ] Exposición de estrategias de imputación configurables como parámetros opcionales en `POST /datasets`
+- [ ] Exposición de umbrales de baja varianza y alta correlación como parámetros explícitos en la carga
+- [ ] Pruebas de API que verifiquen la aplicación de las configuraciones en el plan generado
