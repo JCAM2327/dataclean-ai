@@ -7,6 +7,12 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+- Registro diario del 2026-11-19 documentando la revisión completa del ROADMAP y la ausencia de ítems pendientes.
+
+### Cambiado
+- Nota de estado en ROADMAP confirmando finalización de fases 0-31 y propuesta de siguiente fase.
+
 ## [0.40.0] — 2026-11-18
 
 ### Añadido
