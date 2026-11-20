@@ -26,7 +26,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.39.0"
+    assert response.json()["version"] == "0.41.0"
 
 
 def test_upload_and_get_importances():
@@ -220,3 +220,22 @@ def test_download_cleaned_parquet_format():
     assert download.headers["content-type"] == "application/octet-stream"
     assert "cleaned_" in download.headers.get("content-disposition", "")
     assert download.content[:4] == b"PAR1"  # Parquet magic
+
+
+def test_configurable_imputation_strategies_in_plan():
+    with open(SAMPLE, "rb") as f:
+        response = client.post(
+            "/datasets?impute_numeric=mean&impute_categorical=constant&impute_constant_value=Unknown",
+            files={"file": ("sample.csv", f, "text/csv")},
+            headers=HEADERS,
+        )
+    assert response.status_code == 201
+    data = response.json()
+    plan = data["report"]["plan"]
+    actions = {(step.get("column"), step.get("action")) for step in plan}
+    # edad is numeric with missing values → impute_mean
+    assert ("edad", "impute_mean") in actions
+    # ciudad is categorical with missing → impute_constant
+    assert ("ciudad", "impute_constant") in actions
+    constant_step = next(s for s in plan if s.get("action") == "impute_constant" and s.get("column") == "ciudad")
+    assert constant_step.get("params", {}).get("value") == "Unknown"
