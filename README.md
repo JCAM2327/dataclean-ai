@@ -26,6 +26,9 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - Parámetro opcional: `drop_high_correlation_threshold=<float>` en `POST /datasets` para excluir columnas numéricas con |correlación| absoluta superior o igual al umbral
 - Parámetro opcional: `importance_threshold=<float>` en `POST /datasets` para reportar candidatos a exclusión por baja importancia de variables
 - Parámetro opcional: `drop_low_importance=true` en `POST /datasets` para incluir automáticamente en el plan las columnas de baja importancia (requiere umbral)
+- Parámetro opcional: `impute_numeric=median|mean|mode|constant` en `POST /datasets` para estrategia de imputación por defecto de columnas numéricas
+- Parámetro opcional: `impute_categorical=mode|median|mean|constant` en `POST /datasets` para estrategia de imputación por defecto de columnas categóricas
+- Parámetro opcional: `impute_constant_value=<valor>` en `POST /datasets` para el valor constante cuando la estrategia es constant
 - `GET /health` — estado y versión del servicio
 - `POST /datasets` — carga CSV, Excel o Parquet y genera informe
 - `GET /datasets` — lista los datasets del usuario
@@ -53,4 +56,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.40.0
+Versión actual: 0.41.0

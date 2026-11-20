@@ -181,6 +181,10 @@ Todas las fases 0-31 se encuentran completadas. El proyecto cuenta con perfilado
 
 ## Fase 32 — Configuración avanzada del plan de limpieza vía API
 
-- [ ] Exposición de estrategias de imputación configurables como parámetros opcionales en `POST /datasets`
-- [ ] Exposición de umbrales de baja varianza y alta correlación como parámetros explícitos en la carga
-- [ ] Pruebas de API que verifiquen la aplicación de las configuraciones en el plan generado
+- [x] Exposición de estrategias de imputación configurables como parámetros opcionales en `POST /datasets`
+- [x] Exposición de umbrales de baja varianza y alta correlación como parámetros explícitos en la carga (ya presentes en versiones anteriores)
+- [x] Pruebas de API que verifiquen la aplicación de las configuraciones en el plan generado
+
+## Nota de estado (2026-11-20)
+
+Todas las fases 0-32 se encuentran completadas. La API ahora permite configurar estrategias de imputación (numéricas y categóricas) en la carga del dataset, integradas con el plan de limpieza existente.
