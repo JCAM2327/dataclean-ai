@@ -31,9 +31,10 @@ app = FastAPI(
         "Plataforma para perfilar datasets tabulares, detectar problemas de calidad, "
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
         "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset, "
-        "descarga del CSV limpio con columna opcional de etiquetas de cluster y visualización de distribución de clusters, inercia, índice Davies-Bouldin y índice Calinski-Harabasz del mejor KMeans en el informe HTML."
+        "descarga del CSV limpio con columna opcional de etiquetas de cluster y visualización de distribución de clusters, inercia, índice Davies-Bouldin y índice Calinski-Harabasz del mejor KMeans en el informe HTML. "
+        "Soporta estrategias de imputación configurables (numéricas y categóricas) mediante parámetros opcionales en la carga."
     ),
-    version="0.40.0",
+    version="0.41.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -83,7 +84,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.40.0"}
+    return {"status": "ok", "version": "0.41.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
@@ -97,6 +98,9 @@ async def upload_dataset(
     drop_high_correlation_threshold: float | None = Query(None),
     importance_threshold: float | None = Query(None),
     drop_low_importance: bool = Query(False),
+    impute_numeric: Literal["median", "mean", "mode", "constant"] | None = Query(None),
+    impute_categorical: Literal["mode", "median", "mean", "constant"] | None = Query(None),
+    impute_constant_value: str | None = Query(None),
     user_id: str = Depends(get_user_id),
 ) -> dict[str, Any]:
     _maybe_cleanup()
@@ -113,10 +117,22 @@ async def upload_dataset(
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"No se pudo cargar el archivo: {exc}") from exc
 
+    strategies: dict[str, Any] = {}
+    if impute_numeric:
+        strategies["__numeric__"] = impute_numeric
+    if impute_categorical:
+        strategies["__categorical__"] = impute_categorical
+    if impute_constant_value is not None:
+        if isinstance(strategies.get("__numeric__"), str) and strategies["__numeric__"] == "constant":
+            strategies["__numeric__"] = {"strategy": "constant", "value": impute_constant_value}
+        if isinstance(strategies.get("__categorical__"), str) and strategies["__categorical__"] == "constant":
+            strategies["__categorical__"] = {"strategy": "constant", "value": impute_constant_value}
+
     report, _ = analyze_frame(
         df,
         source=filename,
         target=target,
+        imputation_strategies=strategies or None,
         scale_numeric=scale_numeric,
         encode_categorical=encode_categorical,
         onehot_drop_first=onehot_drop_first,
