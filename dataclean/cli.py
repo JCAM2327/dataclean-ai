@@ -26,6 +26,7 @@ def analyze(
     drop_high_correlation_threshold: float | None = None,
     importance_threshold: float | None = None,
     drop_low_importance: bool = False,
+    clip_outliers_iqr_multiplier: float | None = 1.5,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
@@ -41,6 +42,7 @@ def analyze(
         drop_high_correlation_threshold=drop_high_correlation_threshold,
         importance_threshold=importance_threshold,
         drop_low_importance=drop_low_importance,
+        clip_outliers_iqr_multiplier=clip_outliers_iqr_multiplier,
     )
 
 
@@ -57,6 +59,7 @@ def analyze_frame(
     drop_high_correlation_threshold: float | None = None,
     importance_threshold: float | None = None,
     drop_low_importance: bool = False,
+    clip_outliers_iqr_multiplier: float | None = 1.5,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
@@ -70,6 +73,7 @@ def analyze_frame(
         drop_low_variance_threshold=drop_low_variance_threshold,
         drop_high_correlation_threshold=drop_high_correlation_threshold,
         target=target_report.get("column"),
+        clip_outliers_iqr_multiplier=clip_outliers_iqr_multiplier,
     )
     high = sum(1 for issue in issues if issue["severity"] in {"high", "critical"})
     report = {
@@ -233,6 +237,12 @@ def main() -> None:
         action="store_true",
         help="Incluir automáticamente en el plan de limpieza las columnas cuya importancia máxima sea inferior al umbral (requiere --importance-threshold)",
     )
+    parser.add_argument(
+        "--clip-outliers-iqr-multiplier",
+        type=float,
+        default=1.5,
+        help="Multiplicador IQR para clipping de outliers (por defecto 1.5; <=0 desactiva el clipping)",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -259,6 +269,7 @@ def main() -> None:
         drop_high_correlation_threshold=args.drop_high_correlation_threshold,
         importance_threshold=args.importance_threshold,
         drop_low_importance=args.drop_low_importance,
+        clip_outliers_iqr_multiplier=args.clip_outliers_iqr_multiplier,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
