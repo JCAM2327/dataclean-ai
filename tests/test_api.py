@@ -26,7 +26,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.41.0"
+    assert response.json()["version"] == "0.42.0"
 
 
 def test_upload_and_get_importances():
@@ -239,3 +239,30 @@ def test_configurable_imputation_strategies_in_plan():
     assert ("ciudad", "impute_constant") in actions
     constant_step = next(s for s in plan if s.get("action") == "impute_constant" and s.get("column") == "ciudad")
     assert constant_step.get("params", {}).get("value") == "Unknown"
+
+
+def test_configurable_clip_outliers_iqr_multiplier():
+    with open(SAMPLE, "rb") as f:
+        response = client.post(
+            "/datasets?clip_outliers_iqr_multiplier=3.0",
+            files={"file": ("sample.csv", f, "text/csv")},
+            headers=HEADERS,
+        )
+    assert response.status_code == 201
+    data = response.json()
+    plan = data["report"]["plan"]
+    clip_steps = [s for s in plan if s.get("action") == "clip_outliers"]
+    # sample.csv may or may not trigger clipping; if it does, verify multiplier in params
+    for step in clip_steps:
+        assert step.get("params", {}).get("multiplier") == 3.0
+
+    # Disable clipping
+    with open(SAMPLE, "rb") as f:
+        response_off = client.post(
+            "/datasets?clip_outliers_iqr_multiplier=0",
+            files={"file": ("sample.csv", f, "text/csv")},
+            headers=HEADERS,
+        )
+    assert response_off.status_code == 201
+    plan_off = response_off.json()["report"]["plan"]
+    assert not any(s.get("action") == "clip_outliers" for s in plan_off)
