@@ -188,3 +188,14 @@ Todas las fases 0-31 se encuentran completadas. El proyecto cuenta con perfilado
 ## Nota de estado (2026-11-20)
 
 Todas las fases 0-32 se encuentran completadas. La API ahora permite configurar estrategias de imputación (numéricas y categóricas) en la carga del dataset, integradas con el plan de limpieza existente.
+
+## Fase 33 — Configuración de clipping de outliers vía API
+
+- [x] Exposición del multiplicador IQR para clipping de outliers como parámetro opcional `clip_outliers_iqr_multiplier` en `POST /datasets` y en la CLI
+- [x] Valor por defecto 1.5; valor <= 0 desactiva el clipping
+- [x] Inclusión del multiplicador en los parámetros de las acciones del plan
+- [x] Pruebas unitarias y de API que verifican el comportamiento
+
+## Nota de estado (2026-11-21)
+
+Todas las fases 0-33 se encuentran completadas. El plan de limpieza admite ahora configuración completa de estrategias de imputación y de clipping de outliers desde la API y la CLI.
