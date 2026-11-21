@@ -32,9 +32,9 @@ app = FastAPI(
         "generar y aplicar planes de limpieza, detectar variable objetivo, comparar modelos baseline e informar importancia de variables. "
         "Incluye asesor de estrategias de modelado con evaluación mínima de clustering (y exposición de etiquetas), persistido en el registro del dataset, "
         "descarga del CSV limpio con columna opcional de etiquetas de cluster y visualización de distribución de clusters, inercia, índice Davies-Bouldin y índice Calinski-Harabasz del mejor KMeans en el informe HTML. "
-        "Soporta estrategias de imputación configurables (numéricas y categóricas) mediante parámetros opcionales en la carga."
+        "Soporta estrategias de imputación configurables (numéricas y categóricas) y multiplicador IQR configurable para clipping de outliers mediante parámetros opcionales en la carga."
     ),
-    version="0.41.0",
+    version="0.42.0",
     openapi_tags=[
         {"name": "Datasets", "description": "Carga, consulta y gestión de datasets y sus informes."},
         {"name": "Informes", "description": "Exportación de informes HTML y descarga de datos limpios."},
@@ -84,7 +84,7 @@ class ValidateRequest(BaseModel):
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "version": "0.41.0"}
+    return {"status": "ok", "version": "0.42.0"}
 
 
 @app.post("/datasets", status_code=201, tags=["Datasets"])
@@ -101,6 +101,7 @@ async def upload_dataset(
     impute_numeric: Literal["median", "mean", "mode", "constant"] | None = Query(None),
     impute_categorical: Literal["mode", "median", "mean", "constant"] | None = Query(None),
     impute_constant_value: str | None = Query(None),
+    clip_outliers_iqr_multiplier: float | None = Query(None, description="Multiplicador IQR para clipping de outliers (por defecto 1.5; <=0 desactiva)"),
     user_id: str = Depends(get_user_id),
 ) -> dict[str, Any]:
     _maybe_cleanup()
@@ -140,6 +141,7 @@ async def upload_dataset(
         drop_high_correlation_threshold=drop_high_correlation_threshold,
         importance_threshold=importance_threshold,
         drop_low_importance=drop_low_importance,
+        clip_outliers_iqr_multiplier=clip_outliers_iqr_multiplier,
     )
     record = store.create(user_id, filename, df, report, content=content)
     try:
