@@ -76,6 +76,7 @@ def test_clip_outliers_iqr():
     assert "lower" in step["params"]
     assert "upper" in step["params"]
     assert step["params"]["count"] >= 1
+    assert step["params"].get("multiplier") == 1.5
 
     cleaned = apply_plan(df, plan)
     lower = step["params"]["lower"]
@@ -83,6 +84,26 @@ def test_clip_outliers_iqr():
     assert cleaned["valor"].max() <= upper
     assert cleaned["valor"].min() >= lower
     assert cleaned["valor"].max() < 1000
+
+
+def test_clip_outliers_configurable_multiplier():
+    df = pd.DataFrame({
+        "valor": [10, 12, 11, 13, 1000, 9, 14, 10, 11, 12],
+    })
+    # Custom multiplier
+    plan = build_cleaning_plan(df, clip_outliers_iqr_multiplier=3.0)
+    clip_steps = [s for s in plan if s["action"] == "clip_outliers"]
+    assert len(clip_steps) == 1
+    assert clip_steps[0]["params"]["multiplier"] == 3.0
+    # Wider bounds with larger multiplier
+    default_plan = build_cleaning_plan(df)
+    default_upper = next(s["params"]["upper"] for s in default_plan if s["action"] == "clip_outliers")
+    custom_upper = clip_steps[0]["params"]["upper"]
+    assert custom_upper > default_upper
+
+    # Disable
+    plan_off = build_cleaning_plan(df, clip_outliers_iqr_multiplier=0)
+    assert not any(s["action"] == "clip_outliers" for s in plan_off)
 
 
 def test_configurable_imputation_strategies():
