@@ -7,6 +7,19 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.42.0] — 2026-11-21
+
+### Añadido
+- Parámetro opcional `clip_outliers_iqr_multiplier` en `POST /datasets` y en la CLI para configurar el multiplicador IQR del clipping de outliers (por defecto 1.5; valor <= 0 desactiva el clipping).
+- Inclusión del multiplicador en los parámetros de las acciones `clip_outliers` del plan.
+- Pruebas unitarias y de API que verifican el comportamiento con multiplicadores personalizados y la desactivación.
+- Registro diario del 2026-11-21.
+
+### Cambiado
+- Versión del paquete y de la API a 0.42.0.
+- ROADMAP: nueva Fase 33 — Configuración de clipping de outliers vía API, marcada como completada.
+- Descripciones del paquete, API y README actualizadas para incluir el multiplicador IQR configurable.
+
 ## [0.41.0] — 2026-11-20
 
 ### Añadido
