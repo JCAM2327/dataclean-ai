@@ -14,17 +14,22 @@ def build_cleaning_plan(
     drop_low_variance_threshold: float | None = None,
     drop_high_correlation_threshold: float | None = None,
     target: str | None = None,
+    clip_outliers_iqr_multiplier: float | None = 1.5,
 ) -> list[dict[str, Any]]:
     """Build an explicit cleaning plan with column, action, justification and optional params.
 
     La columna objetivo, cuando se conoce, queda protegida: no se elimina,
     imputa, recorta, escala ni codifica, y tampoco participa en la detección de
     alta correlación entre features.
+
+    El multiplicador IQR para clipping de outliers es configurable (por defecto 1.5).
+    Un valor <= 0 desactiva el clipping.
     """
     plan: list[dict[str, Any]] = []
     n_rows = len(df)
     strategies = imputation_strategies or {}
     target_name = str(target) if target is not None else None
+    multiplier = 1.5 if clip_outliers_iqr_multiplier is None else float(clip_outliers_iqr_multiplier)
 
     # Duplicates
     if df.duplicated().any():
@@ -187,29 +192,30 @@ def build_cleaning_plan(
             step["params"] = {"value": value}
         plan.append(step)
 
-    # Clip outliers IQR (on remaining numeric)
-    for name in df.columns:
-        if str(name) in dropped:
-            continue
-        if target_name is not None and str(name) == target_name:
-            continue
-        series = df[name]
-        numeric = pd.to_numeric(series, errors="coerce")
-        valid = numeric.dropna()
-        if len(valid) >= 8:
-            q1, q3 = valid.quantile(0.25), valid.quantile(0.75)
-            iqr = q3 - q1
-            if iqr > 0:
-                lower = q1 - 1.5 * iqr
-                upper = q3 + 1.5 * iqr
-                outliers = int(((valid < lower) | (valid > upper)).sum())
-                if outliers and outliers / len(valid) >= 0.01:
-                    plan.append({
-                        "column": str(name),
-                        "action": "clip_outliers",
-                        "justification": f"Recortar outliers por IQR (1.5·IQR) en '{name}' ({outliers} valores).",
-                        "params": {"lower": float(lower), "upper": float(upper), "count": outliers},
-                    })
+    # Clip outliers IQR (on remaining numeric) — configurable multiplier
+    if multiplier > 0:
+        for name in df.columns:
+            if str(name) in dropped:
+                continue
+            if target_name is not None and str(name) == target_name:
+                continue
+            series = df[name]
+            numeric = pd.to_numeric(series, errors="coerce")
+            valid = numeric.dropna()
+            if len(valid) >= 8:
+                q1, q3 = valid.quantile(0.25), valid.quantile(0.75)
+                iqr = q3 - q1
+                if iqr > 0:
+                    lower = q1 - multiplier * iqr
+                    upper = q3 + multiplier * iqr
+                    outliers = int(((valid < lower) | (valid > upper)).sum())
+                    if outliers and outliers / len(valid) >= 0.01:
+                        plan.append({
+                            "column": str(name),
+                            "action": "clip_outliers",
+                            "justification": f"Recortar outliers por IQR ({multiplier}·IQR) en '{name}' ({outliers} valores).",
+                            "params": {"lower": float(lower), "upper": float(upper), "count": outliers, "multiplier": multiplier},
+                        })
 
     # Scale numeric
     if scale_numeric:
