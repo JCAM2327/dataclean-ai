@@ -44,6 +44,10 @@ def test_suggest_unsupervised_when_no_target():
     assert isinstance(cr["best_davies_bouldin"], (int, float)) or cr["best_davies_bouldin"] is None
     assert "best_calinski_harabasz" in cr
     assert isinstance(cr["best_calinski_harabasz"], (int, float)) or cr["best_calinski_harabasz"] is None
+    assert "best_silhouette_bootstrap_mean" in cr
+    assert isinstance(cr["best_silhouette_bootstrap_mean"], (int, float)) or cr["best_silhouette_bootstrap_mean"] is None
+    assert "best_silhouette_bootstrap_std" in cr
+    assert isinstance(cr["best_silhouette_bootstrap_std"], (int, float)) or cr["best_silhouette_bootstrap_std"] is None
 
 
 def test_insufficient_small_data():
