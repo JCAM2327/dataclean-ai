@@ -213,6 +213,8 @@ def _advisor_section(advisor: dict[str, Any]) -> str:
         html += _kv_table([
             ("Mejor k", cr.get("best_k")),
             ("Silueta", cr.get("best_silhouette")),
+            ("Silueta bootstrap media", cr.get("best_silhouette_bootstrap_mean")),
+            ("Silueta bootstrap std", cr.get("best_silhouette_bootstrap_std")),
             ("Inercia", cr.get("best_inertia")),
             ("Davies-Bouldin", cr.get("best_davies_bouldin")),
             ("Calinski-Harabasz", cr.get("best_calinski_harabasz")),
