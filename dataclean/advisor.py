@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
@@ -98,19 +99,46 @@ def suggest_modeling_strategy(
                         except Exception:
                             best_ch = None
                 if best_k is not None and best_labels is not None:
+                    # Evaluación bootstrap de la silueta para el mejor k (estabilidad)
+                    bootstrap_silhouettes: list[float] = []
+                    n_boot = 20
+                    rng = np.random.default_rng(42)
+                    n = len(X_scaled)
+                    for _ in range(n_boot):
+                        idx = rng.choice(n, size=n, replace=True)
+                        if len(set(idx)) < best_k + 1:
+                            continue
+                        Xb = X_scaled[idx]
+                        try:
+                            km_b = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+                            labels_b = km_b.fit_predict(Xb)
+                            if len(set(labels_b)) >= 2:
+                                sil = float(silhouette_score(Xb, labels_b))
+                                bootstrap_silhouettes.append(sil)
+                        except Exception:
+                            continue
+                    boot_mean = float(np.mean(bootstrap_silhouettes)) if bootstrap_silhouettes else None
+                    boot_std = float(np.std(bootstrap_silhouettes)) if len(bootstrap_silhouettes) > 1 else None
                     clustering_results = {
                         "best_k": best_k,
                         "best_silhouette": round(best_score, 4),
                         "best_inertia": round(best_inertia, 4) if best_inertia is not None else None,
                         "best_davies_bouldin": round(best_db, 4) if best_db is not None else None,
                         "best_calinski_harabasz": round(best_ch, 4) if best_ch is not None else None,
+                        "best_silhouette_bootstrap_mean": round(boot_mean, 4) if boot_mean is not None else None,
+                        "best_silhouette_bootstrap_std": round(boot_std, 4) if boot_std is not None else None,
                         "silhouette_scores": scores,
                         "n_samples": int(len(X)),
                         "labels": best_labels,
                     }
-                    recommendations.append(
-                        f"Evaluación KMeans: mejor k={best_k} con silueta {best_score:.3f}."
-                    )
+                    rec = f"Evaluación KMeans: mejor k={best_k} con silueta {best_score:.3f}."
+                    if boot_mean is not None:
+                        rec += f" Bootstrap (n={len(bootstrap_silhouettes)}): media {boot_mean:.3f}"
+                        if boot_std is not None:
+                            rec += f" ± {boot_std:.3f}."
+                        else:
+                            rec += "."
+                    recommendations.append(rec)
             except Exception:
                 clustering_results = {"error": "No se pudo evaluar clustering"}
     elif not clustering_viable and not target_found:
