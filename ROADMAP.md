@@ -199,3 +199,13 @@ Todas las fases 0-32 se encuentran completadas. La API ahora permite configurar 
 ## Nota de estado (2026-11-21)
 
 Todas las fases 0-33 se encuentran completadas. El plan de limpieza admite ahora configuración completa de estrategias de imputación y de clipping de outliers desde la API y la CLI.
+
+## Fase 34 — Estabilidad de la silueta por bootstrap
+
+- [x] Evaluación bootstrap (20 remuestreos) de la silueta para el mejor k de KMeans en el asesor de modelos
+- [x] Exposición de media y desviación estándar bootstrap en el resultado de clustering y en el informe HTML
+- [x] Pruebas unitarias que verifican la presencia de las métricas de estabilidad
+
+## Nota de estado (2026-11-22)
+
+Todas las fases 0-34 se encuentran completadas. El asesor de modelos incluye ahora una evaluación bootstrap de la estabilidad de la silueta del mejor clustering.
