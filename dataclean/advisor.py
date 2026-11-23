@@ -13,11 +13,13 @@ def suggest_modeling_strategy(
     df: pd.DataFrame,
     target_report: dict[str, Any] | None,
     model_report: dict[str, Any] | None = None,
+    n_bootstrap: int = 20,
 ) -> dict[str, Any]:
     """Suggest next modeling or unsupervised analysis steps based on data and prior reports.
 
     Returns a structured recommendation covering supervised continuation,
     unsupervised clustering viability (with optional KMeans evaluation), and concrete next actions.
+    n_bootstrap: number of bootstrap resamples for silhouette stability (clamped 1-100).
     """
     n_rows = int(len(df))
     numeric_cols = [
@@ -101,7 +103,7 @@ def suggest_modeling_strategy(
                 if best_k is not None and best_labels is not None:
                     # Evaluación bootstrap de la silueta para el mejor k (estabilidad)
                     bootstrap_silhouettes: list[float] = []
-                    n_boot = 20
+                    n_boot = max(1, min(int(n_bootstrap), 100))
                     rng = np.random.default_rng(42)
                     n = len(X_scaled)
                     for _ in range(n_boot):
@@ -127,6 +129,8 @@ def suggest_modeling_strategy(
                         "best_calinski_harabasz": round(best_ch, 4) if best_ch is not None else None,
                         "best_silhouette_bootstrap_mean": round(boot_mean, 4) if boot_mean is not None else None,
                         "best_silhouette_bootstrap_std": round(boot_std, 4) if boot_std is not None else None,
+                        "n_bootstrap_requested": n_boot,
+                        "n_bootstrap_successful": len(bootstrap_silhouettes),
                         "silhouette_scores": scores,
                         "n_samples": int(len(X)),
                         "labels": best_labels,

@@ -30,6 +30,7 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 - Parámetro opcional: `impute_categorical=mode|median|mean|constant` en `POST /datasets` para estrategia de imputación por defecto de columnas categóricas
 - Parámetro opcional: `impute_constant_value=<valor>` en `POST /datasets` para el valor constante cuando la estrategia es constant
 - Parámetro opcional: `clip_outliers_iqr_multiplier=<float>` en `POST /datasets` para el multiplicador IQR del clipping de outliers (por defecto 1.5; <=0 desactiva)
+- Parámetro opcional: `bootstrap_resamples=<int>` en `POST /datasets` para el número de remuestreos bootstrap de la evaluación de silueta (por defecto 20; entre 1 y 100)
 - `GET /health` — estado y versión del servicio
 - `POST /datasets` — carga CSV, Excel o Parquet y genera informe
 - `GET /datasets` — lista los datasets del usuario
@@ -57,4 +58,4 @@ Servidor FastAPI con aislamiento de informes por usuario y documentación OpenAP
 uvicorn dataclean.api:app --reload
 ```
 
-Versión actual: 0.43.0
+Versión actual: 0.44.0
