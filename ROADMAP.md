@@ -209,3 +209,14 @@ Todas las fases 0-33 se encuentran completadas. El plan de limpieza admite ahora
 ## Nota de estado (2026-11-22)
 
 Todas las fases 0-34 se encuentran completadas. El asesor de modelos incluye ahora una evaluación bootstrap de la estabilidad de la silueta del mejor clustering.
+
+## Fase 35 — Configuración del número de remuestreos bootstrap
+
+- [x] Parámetro opcional `n_bootstrap` en el asesor de modelos para controlar el tamaño de la evaluación bootstrap de la silueta
+- [x] Exposición como parámetro de query `bootstrap_resamples` en `POST /datasets`
+- [x] Campos de trazabilidad `n_bootstrap_requested` y `n_bootstrap_successful` en el resultado
+- [x] Pruebas unitarias de la configuración
+
+## Nota de estado (2026-11-23)
+
+Todas las fases 0-35 se encuentran completadas. El número de remuestreos bootstrap de la evaluación de silueta es ahora configurable en la carga del dataset.

@@ -7,6 +7,20 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.44.0] — 2026-11-23
+
+### Añadido
+- Parámetro opcional `n_bootstrap` en `suggest_modeling_strategy` para configurar el número de remuestreos bootstrap de la silueta (por defecto 20, acotado a 1-100).
+- Parámetro de query opcional `bootstrap_resamples` en `POST /datasets` que se transmite al asesor de modelos.
+- Campos `n_bootstrap_requested` y `n_bootstrap_successful` en el resultado de clustering.
+- Pruebas unitarias que verifican la configuración por defecto y personalizada.
+- Registro diario del 2026-11-23.
+
+### Cambiado
+- Versión del paquete y de la API a 0.44.0.
+- ROADMAP: nueva Fase 35 — Configuración del número de remuestreos bootstrap, marcada como completada.
+- Descripciones del paquete, API y README actualizadas para incluir el número de remuestreos bootstrap configurable.
+
 ## [0.43.0] — 2026-11-22
 
 ### Añadido
