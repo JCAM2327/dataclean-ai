@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from dataclean.advisor import suggest_modeling_strategy
 from dataclean.io import load_dataframe
 from dataclean.models import compare_models
 from dataclean.plan import apply_plan, build_cleaning_plan, quality_delta
@@ -27,6 +28,7 @@ def analyze(
     importance_threshold: float | None = None,
     drop_low_importance: bool = False,
     clip_outliers_iqr_multiplier: float | None = 1.5,
+    bootstrap_resamples: int = 20,
 ) -> tuple[dict, pd.DataFrame | None]:
     df = load_dataframe(path)
     return analyze_frame(
@@ -43,6 +45,7 @@ def analyze(
         importance_threshold=importance_threshold,
         drop_low_importance=drop_low_importance,
         clip_outliers_iqr_multiplier=clip_outliers_iqr_multiplier,
+        bootstrap_resamples=bootstrap_resamples,
     )
 
 
@@ -60,6 +63,7 @@ def analyze_frame(
     importance_threshold: float | None = None,
     drop_low_importance: bool = False,
     clip_outliers_iqr_multiplier: float | None = 1.5,
+    bootstrap_resamples: int = 20,
 ) -> tuple[dict, pd.DataFrame | None]:
     profile = profile_dataframe(df)
     issues = detect_issues(df)
@@ -142,6 +146,14 @@ def analyze_frame(
                 cleaned_target,
                 importance_threshold=importance_threshold,
             )
+
+    # Integración del asesor de estrategias de modelado
+    report["advisor"] = suggest_modeling_strategy(
+        cleaned_preview,
+        cleaned_target,
+        report["modeling"],
+        n_bootstrap=bootstrap_resamples,
+    )
 
     cleaned = None
     if apply:
@@ -243,6 +255,12 @@ def main() -> None:
         default=1.5,
         help="Multiplicador IQR para clipping de outliers (por defecto 1.5; <=0 desactiva el clipping)",
     )
+    parser.add_argument(
+        "--bootstrap-resamples",
+        type=int,
+        default=20,
+        help="Número de remuestreos bootstrap para la evaluación de estabilidad de la silueta en el asesor (1-100, por defecto 20)",
+    )
     args = parser.parse_args()
     strategies = {}
     if args.impute_numeric:
@@ -270,6 +288,7 @@ def main() -> None:
         importance_threshold=args.importance_threshold,
         drop_low_importance=args.drop_low_importance,
         clip_outliers_iqr_multiplier=args.clip_outliers_iqr_multiplier,
+        bootstrap_resamples=args.bootstrap_resamples,
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
