@@ -19,7 +19,7 @@ def suggest_modeling_strategy(
 
     Returns a structured recommendation covering supervised continuation,
     unsupervised clustering viability (with optional KMeans evaluation), and concrete next actions.
-    n_bootstrap: number of bootstrap resamples for silhouette stability (clamped 1-100).
+    n_bootstrap: number of bootstrap resamples for metric stability (clamped 1-100).
     """
     n_rows = int(len(df))
     numeric_cols = [
@@ -101,8 +101,11 @@ def suggest_modeling_strategy(
                         except Exception:
                             best_ch = None
                 if best_k is not None and best_labels is not None:
-                    # Evaluación bootstrap de la silueta para el mejor k (estabilidad)
+                    # Evaluación bootstrap de métricas para el mejor k (estabilidad e IC)
                     bootstrap_silhouettes: list[float] = []
+                    bootstrap_inertias: list[float] = []
+                    bootstrap_dbs: list[float] = []
+                    bootstrap_chs: list[float] = []
                     n_boot = max(1, min(int(n_bootstrap), 100))
                     rng = np.random.default_rng(42)
                     n = len(X_scaled)
@@ -117,18 +120,55 @@ def suggest_modeling_strategy(
                             if len(set(labels_b)) >= 2:
                                 sil = float(silhouette_score(Xb, labels_b))
                                 bootstrap_silhouettes.append(sil)
+                                bootstrap_inertias.append(float(km_b.inertia_))
+                                try:
+                                    db = float(davies_bouldin_score(Xb, labels_b))
+                                    bootstrap_dbs.append(db)
+                                except Exception:
+                                    pass
+                                try:
+                                    ch = float(calinski_harabasz_score(Xb, labels_b))
+                                    bootstrap_chs.append(ch)
+                                except Exception:
+                                    pass
                         except Exception:
                             continue
-                    boot_mean = float(np.mean(bootstrap_silhouettes)) if bootstrap_silhouettes else None
-                    boot_std = float(np.std(bootstrap_silhouettes)) if len(bootstrap_silhouettes) > 1 else None
+                    def _stats(vals: list[float]) -> dict[str, float | None]:
+                        if not vals:
+                            return {"mean": None, "std": None, "ci_lower": None, "ci_upper": None}
+                        arr = np.array(vals)
+                        return {
+                            "mean": float(np.mean(arr)),
+                            "std": float(np.std(arr)) if len(vals) > 1 else None,
+                            "ci_lower": float(np.percentile(arr, 2.5)),
+                            "ci_upper": float(np.percentile(arr, 97.5)),
+                        }
+                    sil_stats = _stats(bootstrap_silhouettes)
+                    ine_stats = _stats(bootstrap_inertias)
+                    db_stats = _stats(bootstrap_dbs)
+                    ch_stats = _stats(bootstrap_chs)
                     clustering_results = {
                         "best_k": best_k,
                         "best_silhouette": round(best_score, 4),
                         "best_inertia": round(best_inertia, 4) if best_inertia is not None else None,
                         "best_davies_bouldin": round(best_db, 4) if best_db is not None else None,
                         "best_calinski_harabasz": round(best_ch, 4) if best_ch is not None else None,
-                        "best_silhouette_bootstrap_mean": round(boot_mean, 4) if boot_mean is not None else None,
-                        "best_silhouette_bootstrap_std": round(boot_std, 4) if boot_std is not None else None,
+                        "best_silhouette_bootstrap_mean": round(sil_stats["mean"], 4) if sil_stats["mean"] is not None else None,
+                        "best_silhouette_bootstrap_std": round(sil_stats["std"], 4) if sil_stats["std"] is not None else None,
+                        "best_silhouette_bootstrap_ci_lower": round(sil_stats["ci_lower"], 4) if sil_stats["ci_lower"] is not None else None,
+                        "best_silhouette_bootstrap_ci_upper": round(sil_stats["ci_upper"], 4) if sil_stats["ci_upper"] is not None else None,
+                        "best_inertia_bootstrap_mean": round(ine_stats["mean"], 4) if ine_stats["mean"] is not None else None,
+                        "best_inertia_bootstrap_std": round(ine_stats["std"], 4) if ine_stats["std"] is not None else None,
+                        "best_inertia_bootstrap_ci_lower": round(ine_stats["ci_lower"], 4) if ine_stats["ci_lower"] is not None else None,
+                        "best_inertia_bootstrap_ci_upper": round(ine_stats["ci_upper"], 4) if ine_stats["ci_upper"] is not None else None,
+                        "best_davies_bouldin_bootstrap_mean": round(db_stats["mean"], 4) if db_stats["mean"] is not None else None,
+                        "best_davies_bouldin_bootstrap_std": round(db_stats["std"], 4) if db_stats["std"] is not None else None,
+                        "best_davies_bouldin_bootstrap_ci_lower": round(db_stats["ci_lower"], 4) if db_stats["ci_lower"] is not None else None,
+                        "best_davies_bouldin_bootstrap_ci_upper": round(db_stats["ci_upper"], 4) if db_stats["ci_upper"] is not None else None,
+                        "best_calinski_harabasz_bootstrap_mean": round(ch_stats["mean"], 4) if ch_stats["mean"] is not None else None,
+                        "best_calinski_harabasz_bootstrap_std": round(ch_stats["std"], 4) if ch_stats["std"] is not None else None,
+                        "best_calinski_harabasz_bootstrap_ci_lower": round(ch_stats["ci_lower"], 4) if ch_stats["ci_lower"] is not None else None,
+                        "best_calinski_harabasz_bootstrap_ci_upper": round(ch_stats["ci_upper"], 4) if ch_stats["ci_upper"] is not None else None,
                         "n_bootstrap_requested": n_boot,
                         "n_bootstrap_successful": len(bootstrap_silhouettes),
                         "silhouette_scores": scores,
@@ -136,10 +176,10 @@ def suggest_modeling_strategy(
                         "labels": best_labels,
                     }
                     rec = f"Evaluación KMeans: mejor k={best_k} con silueta {best_score:.3f}."
-                    if boot_mean is not None:
-                        rec += f" Bootstrap (n={len(bootstrap_silhouettes)}): media {boot_mean:.3f}"
-                        if boot_std is not None:
-                            rec += f" ± {boot_std:.3f}."
+                    if sil_stats["mean"] is not None:
+                        rec += f" Bootstrap silueta (n={len(bootstrap_silhouettes)}): media {sil_stats['mean']:.3f}"
+                        if sil_stats["ci_lower"] is not None and sil_stats["ci_upper"] is not None:
+                            rec += f" (IC95% [{sil_stats['ci_lower']:.3f}, {sil_stats['ci_upper']:.3f}])."
                         else:
                             rec += "."
                     recommendations.append(rec)

@@ -48,6 +48,17 @@ def test_suggest_unsupervised_when_no_target():
     assert isinstance(cr["best_silhouette_bootstrap_mean"], (int, float)) or cr["best_silhouette_bootstrap_mean"] is None
     assert "best_silhouette_bootstrap_std" in cr
     assert isinstance(cr["best_silhouette_bootstrap_std"], (int, float)) or cr["best_silhouette_bootstrap_std"] is None
+    assert "best_silhouette_bootstrap_ci_lower" in cr
+    assert "best_silhouette_bootstrap_ci_upper" in cr
+    assert "best_inertia_bootstrap_mean" in cr
+    assert "best_inertia_bootstrap_ci_lower" in cr
+    assert "best_inertia_bootstrap_ci_upper" in cr
+    assert "best_davies_bouldin_bootstrap_mean" in cr
+    assert "best_davies_bouldin_bootstrap_ci_lower" in cr
+    assert "best_davies_bouldin_bootstrap_ci_upper" in cr
+    assert "best_calinski_harabasz_bootstrap_mean" in cr
+    assert "best_calinski_harabasz_bootstrap_ci_lower" in cr
+    assert "best_calinski_harabasz_bootstrap_ci_upper" in cr
     assert "n_bootstrap_requested" in cr
     assert cr["n_bootstrap_requested"] == 20
     assert "n_bootstrap_successful" in cr
@@ -64,6 +75,7 @@ def test_bootstrap_configurable():
     assert cr is not None
     assert cr["n_bootstrap_requested"] == 5
     assert "best_silhouette_bootstrap_mean" in cr
+    assert "best_inertia_bootstrap_mean" in cr
     assert any("Bootstrap" in r for r in result["recommendations"])
 
 

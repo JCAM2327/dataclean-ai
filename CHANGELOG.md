@@ -5,6 +5,16 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.47.0] - 2026-11-26
+
+### Añadido
+- Intervalos de confianza bootstrap (percentil 95%) para las métricas de clustering adicionales: inercia, Davies-Bouldin y Calinski-Harabasz, además de la silueta existente.
+- Campos en `clustering_results`: medias, desviaciones estándar y límites de IC para cada métrica bootstrap.
+- Actualización de la versión a 0.47.0.
+
+### Cambiado
+- El texto de recomendación del asesor incluye el IC95% de la silueta cuando está disponible.
+
 ## [0.46.0] - 2026-11-25
 
 ### Añadido
