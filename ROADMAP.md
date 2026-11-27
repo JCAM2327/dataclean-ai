@@ -2,6 +2,7 @@
 
 ## Completadas
 
+- [x] Fase 39: Mejoras en la documentación de la API (OpenAPI) y ejemplos de uso de la CLI (2026-11-27)
 - [x] Fase 38: Intervalos de confianza bootstrap para métricas de clustering adicionales (inercia, Davies-Bouldin, Calinski-Harabasz) (2026-11-26)
 - [x] Fase 37: Exposición del parámetro de remuestreos bootstrap en la CLI e integración del asesor en el flujo CLI (2026-11-25)
 - [x] Fase 36: Exposición completa del parámetro de remuestreos bootstrap en la API (2026-11-24)
@@ -11,8 +12,8 @@
 
 ## En progreso / Siguiente
 
-- [ ] Fase 39: Mejoras en la documentación de la API (OpenAPI) y ejemplos de uso de la CLI.
+- [ ] Pruebas de integración end-to-end para la CLI.
 
 ## Pendientes
 
-- Pruebas de integración end-to-end para la CLI.
+- Ampliación de cobertura de pruebas de la API y escenarios de autenticación.

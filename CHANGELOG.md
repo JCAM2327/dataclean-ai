@@ -5,6 +5,18 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.48.0] - 2026-11-27
+
+### Añadido
+- Implementación funcional de la API FastAPI en `dataclean/api.py` con documentación OpenAPI enriquecida (tags, summaries, descriptions, parámetros).
+- Endpoints: `GET /health`, `POST /datasets` (carga y análisis), `GET /datasets/{id}`, `GET /datasets/{id}/report.html`.
+- Documentación de ejemplos de uso de la CLI en `docs/cli-examples.md`.
+- Ampliación del `README.md` con instrucciones de instalación, ejemplos y arranque de la API.
+- Pruebas básicas de la API en `tests/test_api.py`.
+
+### Cambiado
+- Actualización de la versión a 0.48.0.
+
 ## [0.47.0] - 2026-11-26
 
 ### Añadido
